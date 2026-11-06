@@ -6,27 +6,114 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#062638">
 <title>REAL FISHING - MISTERI SUNGAI</title>
+
 <style>
-*{box-sizing:border-box;touch-action:none}
-body{margin:0;overflow:hidden;background:#062638;color:white;font-family:Arial}
-canvas{display:block}
-#hud{position:fixed;top:9px;left:9px;right:9px;display:flex;justify-content:space-between;z-index:5;pointer-events:none}
-.panel{background:#052333dc;border:1px solid #a5e6f5;border-radius:12px;padding:9px 12px;font-size:12px;line-height:1.6}
-#message{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:5;background:#062b3de8;border:1px solid #a4e5f4;border-radius:12px;padding:10px 14px;text-align:center;font-size:13px;width:max-content;max-width:90%}
-#controls{position:fixed;bottom:14px;left:0;right:0;z-index:8;display:flex;align-items:end;justify-content:space-between;padding:0 12px}
-#stickArea{width:116px;height:116px;border:2px solid #ffffff88;border-radius:50%;background:#ffffff20;position:relative}
-#stick{position:absolute;left:33px;top:33px;width:46px;height:46px;border-radius:50%;background:#bceaffdd;box-shadow:0 0 12px #fff}
-.buttons{display:grid;grid-template-columns:repeat(2,76px);gap:7px}
-button{background:#07516b;border:1px solid #bcecff;color:white;border-radius:12px;padding:13px 4px;font-size:12px;font-weight:bold}
+*{box-sizing:border-box}
+html,body{
+ margin:0;width:100%;height:100%;overflow:hidden;
+ background:#062638;color:white;font-family:Arial,sans-serif;
+}
+body{touch-action:pan-x pan-y}
+canvas{display:block;position:fixed;inset:0;z-index:0}
+
+#hud{
+ position:fixed;top:9px;left:9px;right:9px;
+ display:flex;justify-content:space-between;
+ z-index:5;pointer-events:none;
+}
+.panel{
+ background:#052333dc;border:1px solid #a5e6f5;
+ border-radius:12px;padding:8px 11px;
+ font-size:12px;line-height:1.6;
+}
+#message{
+ position:fixed;top:68px;left:50%;
+ transform:translateX(-50%);z-index:5;
+ background:#062b3de8;border:1px solid #a4e5f4;
+ border-radius:12px;padding:10px 14px;
+ text-align:center;font-size:13px;
+ width:max-content;max-width:90%;
+}
+#assetInfo{
+ position:fixed;top:125px;right:9px;z-index:4;
+ background:#052333bb;border-radius:8px;
+ padding:6px;font-size:10px;
+ max-width:170px;text-align:right;
+}
+#loading{
+ position:fixed;bottom:145px;left:50%;
+ transform:translateX(-50%);z-index:7;
+ background:#062536dd;padding:7px 12px;
+ border-radius:10px;font-size:11px;
+ max-width:90%;text-align:center;
+}
+#controls{
+ position:fixed;bottom:14px;left:0;right:0;
+ height:116px;z-index:8;pointer-events:none;
+}
+#stickArea{
+ position:absolute;left:50%;bottom:0;
+ transform:translateX(-50%);
+ width:112px;height:112px;
+ border:2px solid #ffffff88;border-radius:50%;
+ background:#ffffff20;pointer-events:auto;
+ touch-action:none;
+}
+#stick{
+ position:absolute;left:32px;top:32px;
+ width:44px;height:44px;border-radius:50%;
+ background:#bceaffdd;box-shadow:0 0 12px #fff;
+}
+.buttons{
+ position:absolute;right:12px;bottom:0;
+ display:grid;grid-template-columns:repeat(2,68px);
+ gap:6px;pointer-events:auto;
+}
+button{
+ background:#07516b;border:1px solid #bcecff;
+ color:white;border-radius:12px;
+ padding:12px 3px;font-size:11px;font-weight:bold;
+}
 button:active{background:#00a5d0}
-#start,#ritual{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;background:#031b29ed}
-#startBox,#ritualBox{width:min(360px,94vw);padding:24px;background:#0b3547;border:2px solid #f3d98a;border-radius:20px}
+#start,#ritual{
+ position:fixed;inset:0;z-index:20;
+ display:flex;align-items:center;justify-content:center;
+ text-align:center;padding:20px;background:#031b29ed;
+}
+#startBox,#ritualBox{
+ width:min(370px,94vw);padding:23px;
+ background:#0b3547;border:2px solid #f3d98a;
+ border-radius:20px;
+}
 #ritual{display:none}
-#arabic{font-size:28px;line-height:1.8;color:#ffe6a0}
-#result{display:none;position:fixed;z-index:12;top:40%;left:50%;transform:translate(-50%,-50%);background:#092e40;border:2px solid #ffe08b;border-radius:18px;padding:20px;text-align:center;width:260px}
-#loading{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);z-index:7;background:#062536dd;padding:7px 12px;border-radius:10px;font-size:11px;max-width:90%;text-align:center}
-#hint{position:fixed;bottom:138px;left:50%;transform:translateX(-50%);font-size:10px;color:#dff7ff;white-space:nowrap}
-#assetInfo{position:fixed;top:115px;right:9px;z-index:4;background:#052333bb;border-radius:8px;padding:6px;font-size:10px;max-width:150px;text-align:right}
+#arabic{font-size:27px;line-height:1.8;color:#ffe6a0}
+#result{
+ display:none;position:fixed;z-index:12;
+ top:40%;left:50%;transform:translate(-50%,-50%);
+ background:#092e40;border:2px solid #ffe08b;
+ border-radius:18px;padding:20px;
+ text-align:center;width:270px;
+}
+#errorBox{
+ display:none;position:fixed;z-index:50;inset:0;
+ background:#160b12f2;padding:25px;
+ align-items:center;justify-content:center;text-align:center;
+}
+#errorInner{
+ max-width:420px;background:#351c28;
+ border:1px solid #ff9a9a;border-radius:16px;padding:20px;
+}
+#errorText{font-size:12px;overflow-wrap:anywhere;color:#ffdada}
+#soundStatus{
+ position:fixed;left:10px;bottom:130px;
+ font-size:10px;color:#dff7ff;z-index:5;
+}
+@media(max-width:380px){
+ .buttons{grid-template-columns:repeat(2,61px)}
+ button{padding:10px 2px;font-size:10px}
+ #stickArea{width:100px;height:100px}
+ #stick{left:28px;top:28px}
+}
 </style>
 </head>
 
@@ -43,9 +130,10 @@ button:active{background:#00a5d0}
  </div>
 </div>
 
-<div id="message">Memuatkan sungai...</div>
-<div id="assetInfo">MODEL 3D: sedang dimuatkan</div>
-<div id="loading">Memuatkan model haiwan 3D...</div>
+<div id="message">Memulakan permainan...</div>
+<div id="assetInfo">MODEL 3D: menunggu</div>
+<div id="loading">Memuatkan dunia sungai...</div>
+<div id="soundStatus">Suara: aktif</div>
 
 <div id="controls">
  <div id="stickArea"><div id="stick"></div></div>
@@ -66,8 +154,8 @@ button:active{background:#00a5d0}
 
 <div id="ritual">
  <div id="ritualBox">
-  <h2>Alhamdulillah</h2>
-  <p>Bacalah zikir sebelum mengangkat hasil.</p>
+  <h2>ZIKIR SEBELUM MENGANGKAT</h2>
+  <p>Bacalah zikir dengan tenang.</p>
   <div id="arabic"></div>
   <h3 id="zikirText"></h3>
   <p id="zikirCount"></p>
@@ -78,9 +166,18 @@ button:active{background:#00a5d0}
  <div id="startBox">
   <h1>🎣 REAL FISHING</h1>
   <h2>MISTERI SUNGAI</h2>
-  <p>Terokai sungai, cari ikan, udang dan ketam.</p>
+  <p>Terokai sungai dan cari ikan, udang serta ketam.</p>
   <p>Baca Bismillahirrahmanirrahim sebanyak tiga kali sebelum bermula.</p>
   <button id="startBtn">MULA PERMAINAN</button>
+ </div>
+</div>
+
+<div id="errorBox">
+ <div id="errorInner">
+  <h2>Permainan tidak dapat dimulakan</h2>
+  <p id="errorText"></p>
+  <p>Pastikan internet aktif dan buka semula laman GitHub Pages.</p>
+  <button onclick="location.reload()">CUBA LAGI</button>
  </div>
 </div>
 
@@ -94,29 +191,55 @@ button:active{background:#00a5d0}
 </script>
 
 <script type="module">
-import * as THREE from "three";
-import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
-
-/* ==========================================
-   REAL FISHING - MISTERI SUNGAI
-   FULL HTML GAME
-========================================== */
+(async function(){
+"use strict";
 
 const $=id=>document.getElementById(id);
+
+function showFatalError(error){
+ $("loading").style.display="none";
+ $("errorBox").style.display="flex";
+ $("errorText").textContent=
+  error && error.message ? error.message : String(error);
+ console.error("RALAT PERMAINAN:",error);
+}
+
+window.addEventListener("error",e=>{
+ console.error("JavaScript error:",e.message);
+});
+
+window.addEventListener("unhandledrejection",e=>{
+ console.error("Promise error:",e.reason);
+});
+
+try{
+
+/* ==================================================
+   1. MUATKAN THREE.JS
+================================================== */
+
+const THREE=await import("three");
+const {GLTFLoader}=await import("three/addons/loaders/GLTFLoader.js");
 
 let scene,camera,renderer,clock,loader;
 let waterMat,rod,floatObj,line;
 let score=0,count=0,totalWeight=0;
 let casted=false,biting=false,reeling=false;
-let biteTimer=0,ritualIndex=0;
+let biteTimer=0;
 let soundOn=true;
 let yaw=0,pitch=0;
 let joyOn=false,joyX=0,joyY=0;
-let shrimpModels=[],crabModels=[],trashModels=[],fishModels=[];
-let mixers=[];
+let ritualIndex=0,ritualTimer=null;
 let currentCatch=null;
-let loadedKinds=[];
-let failedKinds=[];
+
+const shrimpModels=[];
+const crabModels=[];
+const fishModels=[];
+const trashModels=[];
+const ripples=[];
+const mixers=[];
+const loadedKinds=[];
+const failedKinds=[];
 
 const zikir=[
  ["سُبْحَانَ اللَّهِ","Subhanallah"],
@@ -124,6 +247,10 @@ const zikir=[
  ["اللَّهُ أَكْبَرُ","Allahu Akbar"],
  ["اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ","Allahumma solli ala Muhammad"]
 ];
+
+function msg(text){
+ $("message").textContent=text;
+}
 
 function say(text){
  if(!soundOn||!window.speechSynthesis)return;
@@ -135,21 +262,18 @@ function say(text){
  speechSynthesis.speak(u);
 }
 
-function msg(text){
- $("message").textContent=text;
-}
-
 function updateHUD(){
  $("score").textContent=score;
  $("count").textContent=count;
  $("weight").textContent=totalWeight.toFixed(2);
 }
 
-/* ==========================================
-   PEMBINAAN DUNIA 3D
-========================================== */
+/* ==================================================
+   2. BINA DUNIA
+================================================== */
 
 function init(){
+
  scene=new THREE.Scene();
  scene.background=new THREE.Color(0x91c9d9);
  scene.fog=new THREE.Fog(0x91c9d9,35,95);
@@ -161,61 +285,81 @@ function init(){
  camera.lookAt(0,0,-12);
 
  renderer=new THREE.WebGLRenderer({
-  antialias:true,
+  antialias:false,
   powerPreference:"high-performance"
  });
+
  renderer.setSize(innerWidth,innerHeight);
- renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+ renderer.setPixelRatio(
+  Math.min(window.devicePixelRatio||1,1.25)
+ );
  renderer.outputColorSpace=THREE.SRGBColorSpace;
+
  document.body.appendChild(renderer.domElement);
 
  clock=new THREE.Clock();
  loader=new GLTFLoader();
 
- scene.add(new THREE.HemisphereLight(
+ const hemi=new THREE.HemisphereLight(
   0xe1faff,0x34513a,2
- ));
+ );
+ scene.add(hemi);
 
- const sun=new THREE.DirectionalLight(0xffffff,2);
+ const sun=new THREE.DirectionalLight(0xffffff,1.8);
  sun.position.set(-12,20,10);
  scene.add(sun);
 
  makeRiver();
  makeBanks();
  makeTrees();
+ makeRocks();
  makeRod();
  makeFloat();
  makeRipples();
 
+ scene.add(camera);
+
  window.addEventListener("resize",resize);
 
- animate();
+ renderer.setAnimationLoop(animate);
+
+ msg("Sungai sedia. Tekan MULA PERMAINAN.");
+ $("loading").textContent="Dunia sungai sudah dibina.";
+
  loadExternalAssets();
 }
 
-/* SUNGAI */
+/* ==================================================
+   3. SUNGAI DAN TEPI SUNGAI
+================================================== */
 
 function makeRiver(){
- const geo=new THREE.PlaneGeometry(100,100);
- waterMat=new THREE.MeshStandardMaterial({
-  color:0x087c9d,
-  roughness:.2,
-  metalness:.1,
-  transparent:true,
-  opacity:.94
- });
-
- const water=new THREE.Mesh(geo,waterMat);
- water.rotation.x=-Math.PI/2;
- scene.add(water);
 
  const bed=new THREE.Mesh(
   new THREE.PlaneGeometry(100,100),
   new THREE.MeshStandardMaterial({color:0x354c37})
  );
+
  bed.rotation.x=-Math.PI/2;
  bed.position.y=-1.5;
  scene.add(bed);
+
+ waterMat=new THREE.MeshStandardMaterial({
+  color:0x087c9d,
+  roughness:.22,
+  metalness:.08,
+  transparent:true,
+  opacity:.96
+ });
+
+ const water=new THREE.Mesh(
+  new THREE.PlaneGeometry(20,100),
+  waterMat
+ );
+
+ water.rotation.x=-Math.PI/2;
+ water.position.y=-.08;
+ scene.add(water);
 
  const shoreMat=new THREE.MeshStandardMaterial({
   color:0x8b7950
@@ -223,44 +367,61 @@ function makeRiver(){
 
  for(const side of [-1,1]){
   const shore=new THREE.Mesh(
-   new THREE.BoxGeometry(5,.45,100),shoreMat
+   new THREE.BoxGeometry(5,.45,100),
+   shoreMat
   );
-  shore.position.set(side*10,-.15,-25);
+
+  shore.position.set(side*12.5,-.18,-25);
   scene.add(shore);
  }
 }
 
 function makeBanks(){
- const mat=new THREE.MeshStandardMaterial({color:0x426c39});
+
+ const mat=new THREE.MeshStandardMaterial({
+  color:0x426c39
+ });
+
  for(const side of [-1,1]){
   const bank=new THREE.Mesh(
-   new THREE.BoxGeometry(8,2,100),mat
+   new THREE.BoxGeometry(8,2,100),
+   mat
   );
-  bank.position.set(side*14,.2,-25);
+
+  bank.position.set(side*18,.2,-25);
   scene.add(bank);
  }
 }
 
 function makeTrees(){
- const trunkMat=new THREE.MeshStandardMaterial({color:0x60402b});
- const leafMat=new THREE.MeshStandardMaterial({color:0x176637});
+
+ const trunkMat=new THREE.MeshStandardMaterial({
+  color:0x60402b
+ });
+
+ const leafMat=new THREE.MeshStandardMaterial({
+  color:0x176637
+ });
 
  for(const side of [-1,1]){
-  for(let i=0;i<17;i++){
-   const x=side*(13+Math.random()*5);
+  for(let i=0;i<19;i++){
+
+   const x=side*(14+Math.random()*5);
    const z=-i*4+5;
 
    const trunk=new THREE.Mesh(
     new THREE.CylinderGeometry(.15,.28,3,8),
     trunkMat
    );
+
    trunk.position.set(x,1.4,z);
    scene.add(trunk);
 
    const leaves=new THREE.Mesh(
-    new THREE.SphereGeometry(1.3,9,8),
+    new THREE.SphereGeometry(1.3,10,9),
     leafMat
    );
+
    leaves.scale.set(1.2,1.4,1.1);
    leaves.position.set(x,3.5,z);
    scene.add(leaves);
@@ -268,13 +429,46 @@ function makeTrees(){
  }
 }
 
-/* RIak AIR */
+function makeRocks(){
 
-const ripples=[];
+ const rockMat=new THREE.MeshStandardMaterial({
+  color:0x777b70,roughness:1
+ });
+
+ for(let side of [-1,1]){
+  for(let i=0;i<15;i++){
+
+   const rock=new THREE.Mesh(
+    new THREE.DodecahedronGeometry(
+     .35+Math.random()*.5,1
+    ),
+    rockMat
+   );
+
+   rock.position.set(
+    side*(10.5+Math.random()*2),
+    -.1+Math.random()*.1,
+    -Math.random()*65
+   );
+
+   rock.rotation.set(
+    Math.random(),Math.random(),Math.random()
+   );
+
+   scene.add(rock);
+  }
+ }
+}
+
+/* ==================================================
+   4. RIak AIR
+================================================== */
 
 function makeRipples(){
+
  for(let i=0;i<32;i++){
-  const r=new THREE.Mesh(
+
+  const ripple=new THREE.Mesh(
    new THREE.RingGeometry(.1,.16,24),
    new THREE.MeshBasicMaterial({
     color:0xc8f7ff,
@@ -284,27 +478,31 @@ function makeRipples(){
    })
   );
 
-  r.rotation.x=-Math.PI/2;
-  r.position.set(
-   (Math.random()-.5)*16,
-   .02,
-   -Math.random()*45
+  ripple.rotation.x=-Math.PI/2;
+
+  ripple.position.set(
+   (Math.random()-.5)*17,
+   -.045,
+   -Math.random()*50
   );
-  r.userData.phase=Math.random()*5;
-  scene.add(r);
-  ripples.push(r);
+
+  ripple.userData.phase=Math.random()*5;
+
+  scene.add(ripple);
+  ripples.push(ripple);
  }
 }
 
-/* ==========================================
-   JORAN 3D DAN TALI
-========================================== */
+/* ==================================================
+   5. JORAN DAN KEKILI
+================================================== */
 
 function makeRod(){
+
  const group=new THREE.Group();
+
  group.position.set(.65,-.65,-1.1);
  camera.add(group);
- scene.add(camera);
 
  const carbon=new THREE.MeshStandardMaterial({
   color:0x202a32,
@@ -326,6 +524,7 @@ function makeRod(){
   new THREE.CylinderGeometry(.025,.055,4,12),
   carbon
  );
+
  shaft.rotation.x=-Math.PI/2;
  shaft.rotation.z=-.15;
  shaft.position.set(0,0,-1.5);
@@ -335,31 +534,52 @@ function makeRod(){
   new THREE.CylinderGeometry(.075,.09,.65,12),
   gripMat
  );
+
  grip.rotation.x=-Math.PI/2;
  grip.position.set(0,-.03,-.1);
  group.add(grip);
 
- const reel=new THREE.Mesh(
+ const reelBody=new THREE.Mesh(
   new THREE.CylinderGeometry(.19,.19,.12,20),
   metal
  );
- reel.rotation.x=Math.PI/2;
- reel.position.set(0,-.2,-.65);
- group.add(reel);
+
+ reelBody.rotation.x=Math.PI/2;
+ reelBody.position.set(0,-.2,-.65);
+ group.add(reelBody);
 
  const spool=new THREE.Mesh(
   new THREE.CylinderGeometry(.11,.11,.16,20),
   carbon
  );
+
  spool.rotation.x=Math.PI/2;
  spool.position.set(0,-.2,-.65);
  group.add(spool);
 
- for(let i=0;i<8;i++){
+ const handleArm=new THREE.Mesh(
+  new THREE.BoxGeometry(.05,.32,.05),
+  metal
+ );
+
+ handleArm.position.set(.22,-.34,-.65);
+ group.add(handleArm);
+
+ const handleKnob=new THREE.Mesh(
+  new THREE.SphereGeometry(.07,12,10),
+  gripMat
+ );
+
+ handleKnob.position.set(.22,-.51,-.65);
+ group.add(handleKnob);
+
+ for(let i=0;i<9;i++){
+
   const ring=new THREE.Mesh(
    new THREE.TorusGeometry(.06-i*.003,.012,6,12),
    metal
   );
+
   ring.position.set(0,.01,-.45-i*.39);
   group.add(ring);
  }
@@ -367,27 +587,34 @@ function makeRod(){
  rod=group;
 
  const points=[];
- for(let i=0;i<14;i++){
-  points.push(new THREE.Vector3(0,0,-i*.28));
+
+ for(let i=0;i<18;i++){
+  points.push(new THREE.Vector3(0,0,-i*.24));
  }
 
  const geo=new THREE.BufferGeometry().setFromPoints(points);
+
  line=new THREE.Line(
   geo,
   new THREE.LineBasicMaterial({color:0xf0ffff})
  );
+
  group.add(line);
 }
 
-/* PELAMPUNG */
+/* ==================================================
+   6. PELAMPUNG
+================================================== */
 
 function makeFloat(){
+
  const g=new THREE.Group();
 
  const red=new THREE.Mesh(
   new THREE.SphereGeometry(.075,12,10),
   new THREE.MeshStandardMaterial({color:0xff2929})
  );
+
  red.scale.y=1.8;
  g.add(red);
 
@@ -395,64 +622,77 @@ function makeFloat(){
   new THREE.SphereGeometry(.07,12,10),
   new THREE.MeshStandardMaterial({color:0xffffff})
  );
+
  white.position.y=-.12;
  g.add(white);
 
+ const black=new THREE.Mesh(
+  new THREE.SphereGeometry(.025,8,8),
+  new THREE.MeshStandardMaterial({color:0x171717})
+ );
+
+ black.position.y=.13;
+ g.add(black);
+
  g.position.set(0,.05,-12);
  scene.add(g);
+
  floatObj=g;
 }
 
-/* ==========================================
-   PEMUAT MODEL 3D LUARAN
-========================================== */
+/* ==================================================
+   7. CARI MODEL LUARAN
+================================================== */
 
 /*
- Udang mantis:
+ MODEL UDANG:
  https://polyfork.dev/cdn/mantis-shrimp-base.glb
 
- Model lain dicari melalui API katalog 3DAssets.dev.
- API memberikan CDN URL rasmi bagi setiap model.
+ Model lain dicari melalui katalog 3DAssets.dev.
+ Model luar hanya dimuatkan jika pautannya berjaya.
+ Jika gagal, permainan utama masih boleh dimainkan.
 */
 
 async function loadExternalAssets(){
- msg("Memuatkan model udang, ketam dan sampah 3D...");
 
- const tasks=[
+ msg("Memuatkan model 3D haiwan dan sampah...");
+
+ const jobs=[
   loadGLB(
    "https://polyfork.dev/cdn/mantis-shrimp-base.glb",
    "shrimp"
   ),
-
+  searchAndLoad("freshwater fish","animals","fish"),
   searchAndLoad("crab","animals","crab"),
-
   searchAndLoad("plastic bottle","props","bottle"),
-
-  searchAndLoad("crushed can","props","can")
+  searchAndLoad("metal can","props","can")
  ];
 
- await Promise.allSettled(tasks);
-
- const total=loadedKinds.length;
- const failed=failedKinds.length;
+ await Promise.allSettled(jobs);
 
  $("loading").style.display="none";
 
  $("assetInfo").textContent=
-  "Model berjaya: "+loadedKinds.join(", ")+
-  (failed? " | Gagal: "+failedKinds.join(", "):"");
+  "Berjaya: "+
+  (loadedKinds.join(", ")||"tiada")+
+  " | Gagal: "+
+  (failedKinds.join(", ")||"tiada");
 
- if(total>0){
-  msg("Dunia sungai sedia. Model 3D berjaya dimuatkan.");
+ if(loadedKinds.length){
+  msg("Dunia sungai sedia. Model 3D telah dimuatkan.");
  }else{
-  msg("Model 3D tidak dapat dimuatkan. Semak sambungan internet.");
+  msg("Dunia sungai sedia. Model tambahan tidak tersedia.");
  }
 }
 
-/* CARI MODEL MELALUI API */
+/* ==================================================
+   8. CARI ASET DARIPADA API
+================================================== */
 
 async function searchAndLoad(query,category,kind){
+
  try{
+
   const url=
    "https://3dassets.dev/api/v1/assets?q="+
    encodeURIComponent(query)+
@@ -460,33 +700,40 @@ async function searchAndLoad(query,category,kind){
    "&limit=40&sort=relevance";
 
   const response=await fetch(url);
-  if(!response.ok)throw new Error("API tidak tersedia");
+
+  if(!response.ok){
+   throw new Error("API katalog tidak tersedia");
+  }
 
   const data=await response.json();
   const assets=collectAssets(data);
-
   const match=chooseAsset(assets,query,kind);
 
   if(!match){
-   throw new Error("Tiada model yang sesuai ditemui");
+   throw new Error("Model "+kind+" tidak ditemui");
   }
 
   return await loadGLB(match.cdnUrl,kind);
 
  }catch(error){
+
   console.warn("Carian "+kind+" gagal:",error);
   failedKinds.push(kind);
   return false;
  }
 }
 
-/* KUMPUL HASIL JSON API */
+/* ==================================================
+   9. BACA HASIL API
+================================================== */
 
 function collectAssets(data){
+
  const found=[];
  const seen=new Set();
 
  function walk(value){
+
   if(!value||typeof value!=="object")return;
 
   if(Array.isArray(value)){
@@ -498,18 +745,24 @@ function collectAssets(data){
    value.cdnUrl||
    value.cdn_url||
    value.modelUrl||
+   value.model_url||
    value.url;
 
   const name=
    value.name||
    value.title||
    value.slug||
-   value.label||"";
+   value.label||
+   "";
 
-  if(typeof url==="string"&&
-     url.includes(".glb")&&
-     !seen.has(url)){
+  if(
+   typeof url==="string"&&
+   /\.glb(?:\?|$)/i.test(url)&&
+   !seen.has(url)
+  ){
+
    seen.add(url);
+
    found.push({
     name:String(name).toLowerCase(),
     cdnUrl:url
@@ -525,60 +778,95 @@ function collectAssets(data){
  return found;
 }
 
-/* PILIH MODEL YANG SESUAI */
+/* ==================================================
+   10. PILIH MODEL YANG SESUAI
+================================================== */
 
 function chooseAsset(assets,query,kind){
+
  const q=query.toLowerCase();
 
- let candidates=assets.filter(a=>{
-  const n=a.name;
+ let candidates=assets.filter(asset=>{
+
+  const name=asset.name;
+
+  if(kind==="fish"){
+   return (
+    name.includes("fish")||
+    name.includes("carp")||
+    name.includes("tilapia")||
+    name.includes("catfish")
+   );
+  }
+
   if(kind==="crab"){
-   return n.includes("crab")&&!n.includes("nebula");
+   return name.includes("crab");
   }
+
   if(kind==="bottle"){
-   return n.includes("bottle")||
-          n.includes("plastic")||
-          n.includes("pet");
+   return (
+    name.includes("bottle")||
+    name.includes("plastic")||
+    name.includes("pet")
+   );
   }
+
   if(kind==="can"){
-   return n.includes("can")||
-          n.includes("tin")||
-          n.includes("metal");
+   return (
+    name.includes("can")||
+    name.includes("tin")||
+    name.includes("metal")
+   );
   }
-  return n.includes(q);
+
+  return name.includes(q);
  });
 
  if(!candidates.length)return null;
 
  candidates.sort((a,b)=>{
-  const aScore=a.name.includes(q)?0:1;
-  const bScore=b.name.includes(q)?0:1;
-  return aScore-bScore;
+
+  const as=a.name.includes(q)?0:1;
+  const bs=b.name.includes(q)?0:1;
+
+  return as-bs;
  });
 
  return candidates[0];
 }
 
-/* LOAD GLB */
+/* ==================================================
+   11. LOAD FAIL-SAFE GLB
+================================================== */
 
 function loadGLB(url,kind){
+
  return new Promise(resolve=>{
+
   loader.load(
    url,
+
    gltf=>{
+
     try{
+
      placeLoadedModel(gltf,kind);
      loadedKinds.push(kind);
      resolve(true);
+
     }catch(error){
-     console.error(error);
+
+     console.error("Ralat model "+kind,error);
      failedKinds.push(kind);
      resolve(false);
     }
    },
+
    undefined,
+
    error=>{
-    console.warn("Gagal memuatkan GLB:",kind,error);
+
+    console.warn("GLB gagal dimuatkan:",kind,error);
     failedKinds.push(kind);
     resolve(false);
    }
@@ -586,15 +874,21 @@ function loadGLB(url,kind){
  });
 }
 
-/* SUSUN MODEL DI DUNIA */
+/* ==================================================
+   12. SUSUN MODEL KE DUNIA
+================================================== */
 
 function placeLoadedModel(gltf,kind){
+
  const original=gltf.scene;
 
  original.traverse(obj=>{
+
   if(obj.isMesh){
+
    obj.castShadow=false;
    obj.receiveShadow=false;
+
    if(obj.material){
     obj.material.roughness=Math.max(
      .35,obj.material.roughness||.5
@@ -609,34 +903,43 @@ function placeLoadedModel(gltf,kind){
 
  const max=Math.max(size.x,size.y,size.z)||1;
 
- const target={
+ const targetSize={
+  fish:1.1,
   shrimp:.55,
   crab:.85,
   bottle:.55,
   can:.35
  }[kind]||.5;
 
- original.scale.setScalar(target/max);
+ original.scale.setScalar(targetSize/max);
 
  if(kind==="shrimp"){
+
   for(let i=0;i<3;i++){
+
    const model=original.clone(true);
+
    model.position.set(
     -3+i*3,
     -.35,
     -7-i*2
    );
+
    model.rotation.y=Math.PI/2;
    model.userData.phase=Math.random()*6;
+
    scene.add(model);
    shrimpModels.push(model);
   }
 
   if(gltf.animations&&gltf.animations.length){
+
    const mixer=new THREE.AnimationMixer(original);
+
    gltf.animations.forEach(clip=>{
     mixer.clipAction(clip).play();
    });
+
    original.position.set(-3,-.35,-7);
    scene.add(original);
    mixers.push(mixer);
@@ -644,78 +947,118 @@ function placeLoadedModel(gltf,kind){
   }
  }
 
- if(kind==="crab"){
-  for(let i=0;i<2;i++){
+ if(kind==="fish"){
+
+  for(let i=0;i<4;i++){
+
    const model=original.clone(true);
+
    model.position.set(
-    i===0?-5:5,
+    -5+i*3.2,
+    -.55,
+    -10-i*5
+   );
+
+   model.rotation.y=Math.PI/2;
+   model.userData.phase=Math.random()*6;
+
+   scene.add(model);
+   fishModels.push(model);
+  }
+ }
+
+ if(kind==="crab"){
+
+  for(let i=0;i<3;i++){
+
+   const model=original.clone(true);
+
+   model.position.set(
+    i===0?-5:i===1?5:0,
     -.05,
     -7-i*4
    );
+
    model.userData.phase=Math.random()*6;
+
    scene.add(model);
    crabModels.push(model);
   }
  }
 
  if(kind==="bottle"||kind==="can"){
+
   for(let i=0;i<3;i++){
+
    const model=original.clone(true);
+
    model.position.set(
     -4+i*4,
-    .05,
+    .02,
     -8-i*5
    );
+
    model.rotation.set(
     Math.random()*.2,
     Math.random()*6,
     Math.random()*.3
    );
+
    model.userData.phase=Math.random()*6;
+
    scene.add(model);
    trashModels.push(model);
   }
  }
 }
 
-/* ==========================================
-   JOYSTICK
-========================================== */
+/* ==================================================
+   13. JOYSTICK
+================================================== */
 
 const area=$("stickArea");
 const stick=$("stick");
 
 function joyMove(e){
+
  if(!joyOn)return;
 
- const r=area.getBoundingClientRect();
- let x=e.clientX-r.left-r.width/2;
- let y=e.clientY-r.top-r.height/2;
+ const rect=area.getBoundingClientRect();
 
- const max=34;
- const d=Math.hypot(x,y);
+ let x=e.clientX-rect.left-rect.width/2;
+ let y=e.clientY-rect.top-rect.height/2;
 
- if(d>max){
-  x=x/d*max;
-  y=y/d*max;
+ const max=30;
+ const distance=Math.hypot(x,y);
+
+ if(distance>max){
+  x=x/distance*max;
+  y=y/distance*max;
  }
 
  joyX=x/max;
  joyY=y/max;
 
- stick.style.left=(33+x)+"px";
- stick.style.top=(33+y)+"px";
+ const center=(area.clientWidth-44)/2;
+
+ stick.style.left=(center+x)+"px";
+ stick.style.top=(center+y)+"px";
 }
 
 function joyEnd(){
+
  joyOn=false;
  joyX=0;
  joyY=0;
- stick.style.left="33px";
- stick.style.top="33px";
+
+ const center=(area.clientWidth-44)/2;
+
+ stick.style.left=center+"px";
+ stick.style.top=center+"px";
 }
 
 area.addEventListener("pointerdown",e=>{
+
  area.setPointerCapture(e.pointerId);
  joyOn=true;
  joyMove(e);
@@ -725,11 +1068,12 @@ area.addEventListener("pointermove",joyMove);
 area.addEventListener("pointerup",joyEnd);
 area.addEventListener("pointercancel",joyEnd);
 
-/* ==========================================
-   SISTEM MEMANCING
-========================================== */
+/* ==================================================
+   14. SISTEM MEMANCING
+================================================== */
 
 function cast(){
+
  if(casted){
   msg("Umpan sudah berada di dalam air.");
   return;
@@ -738,15 +1082,18 @@ function cast(){
  casted=true;
  biting=false;
  reeling=false;
+
  biteTimer=5+Math.random()*7;
 
  floatObj.position.set(0,.05,-12);
 
  msg("Umpan dilontarkan. Tunggu ikan menyambar...");
+
  say("Umpan sudah dilontarkan. Tunggu ikan memakan umpan.");
 }
 
 function reel(){
+
  if(!casted){
   msg("Baling umpan dahulu.");
   return;
@@ -761,7 +1108,65 @@ function reel(){
  }
 }
 
+function chooseCatch(){
+
+ const n=Math.random();
+
+ if(n<.48){
+
+  const names=[
+   "Ikan Lampam",
+   "Ikan Patin",
+   "Ikan Tilapia",
+   "Ikan Baung",
+   "Ikan Keli",
+   "Ikan Haruan"
+  ];
+
+  return {
+   name:names[Math.floor(Math.random()*names.length)],
+   weight:.3+Math.random()*3,
+   points:20,
+   type:"ikan"
+  };
+ }
+
+ if(n<.68){
+
+  return {
+   name:"Udang Galah",
+   weight:.05+Math.random()*.4,
+   points:35,
+   type:"udang"
+  };
+ }
+
+ if(n<.84){
+
+  return {
+   name:"Ketam Sungai",
+   weight:.1+Math.random()*.5,
+   points:30,
+   type:"ketam"
+  };
+ }
+
+ const trash=[
+  "Botol Plastik",
+  "Tin Minuman",
+  "Sampah Plastik"
+ ];
+
+ return {
+  name:trash[Math.floor(Math.random()*trash.length)],
+  weight:.1+Math.random()*.8,
+  points:-5,
+  type:"sampah"
+ };
+}
+
 function lift(){
+
  if(!casted){
   msg("Baling umpan dahulu.");
   return;
@@ -776,63 +1181,16 @@ function lift(){
  ritualIndex=0;
 
  $("ritual").style.display="flex";
+
  showZikir();
 }
 
-function chooseCatch(){
- const n=Math.random();
-
- if(n<.48){
-  const names=[
-   "Ikan Lampam",
-   "Ikan Patin",
-   "Ikan Tilapia",
-   "Ikan Baung",
-   "Ikan Keli",
-   "Ikan Haruan"
-  ];
-
-  return {
-   name:names[Math.floor(Math.random()*names.length)],
-   weight:.3+Math.random()*3,
-   points:20
-  };
- }
-
- if(n<.68){
-  return {
-   name:"Udang Galah",
-   weight:.05+Math.random()*.4,
-   points:35
-  };
- }
-
- if(n<.84){
-  return {
-   name:"Ketam Sungai",
-   weight:.1+Math.random()*.5,
-   points:30
-  };
- }
-
- const trash=[
-  "Botol Plastik",
-  "Tin Minuman",
-  "Sampah Plastik"
- ];
-
- return {
-  name:trash[Math.floor(Math.random()*trash.length)],
-  weight:.1+Math.random()*.8,
-  points:-5
- };
-}
-
-/* ==========================================
-   ZIKIR SEBELUM ANGKAT
-========================================== */
+/* ==================================================
+   15. ZIKIR SEBELUM ANGKAT
+================================================== */
 
 function showZikir(){
+
  const z=zikir[ritualIndex];
 
  $("arabic").textContent=z[0];
@@ -841,21 +1199,29 @@ function showZikir(){
 
  say(z[1]);
 
- setTimeout(()=>{
+ clearTimeout(ritualTimer);
+
+ ritualTimer=setTimeout(()=>{
+
   if($("ritual").style.display!=="flex")return;
 
   ritualIndex++;
 
   if(ritualIndex<4){
+
    showZikir();
+
   }else{
+
    $("ritual").style.display="none";
    finishCatch();
   }
+
  },2300);
 }
 
 function finishCatch(){
+
  const c=currentCatch;
 
  score+=c.points;
@@ -865,14 +1231,17 @@ function finishCatch(){
  updateHUD();
 
  $("catchName").textContent=c.name;
+
  $("catchWeight").textContent=
   "Berat: "+c.weight.toFixed(2)+" kg";
+
  $("catchScore").textContent=
   "Mata: "+c.points;
 
  $("result").style.display="block";
 
  msg("Tahniah! Anda mendapat "+c.name);
+
  say("Tahniah. Anda mendapat "+c.name);
 
  casted=false;
@@ -883,26 +1252,32 @@ function finishCatch(){
 }
 
 function closeResult(){
+
  $("result").style.display="none";
+
  msg("Baling umpan untuk tangkapan seterusnya.");
 }
 
-/* ==========================================
-   ANIMASI MODEL DAN SUNGAI
-========================================== */
+/* ==================================================
+   16. ANIMASI DUNIA
+================================================== */
 
 function animate(){
- requestAnimationFrame(animate);
+
+ if(!renderer||!scene)return;
 
  const dt=Math.min(clock.getDelta(),.04);
  const t=clock.elapsedTime;
 
+ /* Pandangan joystick */
+
  if(joyOn){
-  yaw-=joyX*.025;
-  pitch-=joyY*.012;
+
+  yaw-=joyX*.018;
+  pitch-=joyY*.009;
 
   pitch=THREE.MathUtils.clamp(
-   pitch,-.35,.35
+   pitch,-.3,.3
   );
 
   camera.rotation.order="YXZ";
@@ -910,35 +1285,55 @@ function animate(){
   camera.rotation.x=pitch;
  }
 
+ /* Gigitan ikan */
+
  if(casted&&!biting){
+
   biteTimer-=dt;
 
   if(biteTimer<=0){
+
    biting=true;
+
    msg("🐟 ADA TARIKAN! Tekan KARAU dan ANGKAT!");
+
    say("Ada ikan memakan umpan. Cepat karau tali.");
   }
  }
 
+ /* Pergerakan pelampung */
+
  if(biting){
-  floatObj.position.y=-.2+Math.sin(t*14)*.12;
+
+  floatObj.position.y=
+   -.2+Math.sin(t*14)*.12;
 
   if(reeling){
+
    floatObj.position.z+=dt*.6;
-   rod.rotation.x=.15+Math.sin(t*8)*.08;
+
+   rod.rotation.x=
+    .15+Math.sin(t*8)*.08;
+
   }else{
-   rod.rotation.x=.04+Math.sin(t*5)*.04;
+
+   rod.rotation.x=
+    .04+Math.sin(t*5)*.04;
   }
+
  }else{
+
   rod.rotation.x=Math.sin(t)*.015;
  }
 
- /* Tali pancing melengkung */
+ /* Tali pancing */
 
  if(line){
+
   const a=line.geometry.attributes.position;
 
   for(let i=0;i<a.count;i++){
+
    const f=i/(a.count-1);
 
    a.setXYZ(
@@ -954,7 +1349,8 @@ function animate(){
 
  /* Udang bergerak */
 
- shrimpModels.forEach((s,i)=>{
+ shrimpModels.forEach(s=>{
+
   const p=s.userData.phase||0;
 
   s.position.x+=Math.sin(t*1.5+p)*.0015;
@@ -962,9 +1358,21 @@ function animate(){
   s.rotation.y=Math.PI/2+Math.sin(t*1.5+p)*.15;
  });
 
- /* Ketam berjalan perlahan */
+ /* Ikan berenang */
 
- crabModels.forEach((c,i)=>{
+ fishModels.forEach(f=>{
+
+  const p=f.userData.phase||0;
+
+  f.position.x+=Math.sin(t*.8+p)*.004;
+  f.position.z+=Math.cos(t*.5+p)*.003;
+  f.rotation.y=Math.PI/2+Math.sin(t+p)*.12;
+ });
+
+ /* Ketam bergerak */
+
+ crabModels.forEach(c=>{
+
   const p=c.userData.phase||0;
 
   c.position.x+=Math.sin(t*.8+p)*.001;
@@ -973,7 +1381,8 @@ function animate(){
 
  /* Sampah terapung */
 
- trashModels.forEach((o,i)=>{
+ trashModels.forEach(o=>{
+
   const p=o.userData.phase||0;
 
   o.position.x+=Math.sin(t*.4+p)*.001;
@@ -981,10 +1390,12 @@ function animate(){
   o.rotation.z=Math.sin(t*.8+p)*.025;
  });
 
- /* Animasi air */
+ /* Riak air */
 
  ripples.forEach(r=>{
+
   const s=1+((t+r.userData.phase)%4)*.3;
+
   r.scale.set(s,s,s);
   r.material.opacity=.3-(s-1)*.07;
  });
@@ -998,21 +1409,41 @@ function animate(){
  renderer.render(scene,camera);
 }
 
-/* ==========================================
-   BUTANG
-========================================== */
+/* ==================================================
+   17. SAIZ SKRIN
+================================================== */
+
+function resize(){
+
+ if(!camera||!renderer)return;
+
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+
+ renderer.setSize(innerWidth,innerHeight);
+ renderer.setPixelRatio(
+  Math.min(window.devicePixelRatio||1,1.25)
+ );
+}
+
+/* ==================================================
+   18. BUTANG PERMAINAN
+================================================== */
 
 $("cast").addEventListener("click",cast);
 $("reel").addEventListener("click",reel);
 $("lift").addEventListener("click",lift);
-
 $("continue").addEventListener("click",closeResult);
 
 $("sound").addEventListener("click",()=>{
+
  soundOn=!soundOn;
 
  $("sound").textContent=
   soundOn?"🔊 SUARA":"🔇 SENYAP";
+
+ $("soundStatus").textContent=
+  soundOn?"Suara: aktif":"Suara: senyap";
 
  if(!soundOn&&window.speechSynthesis){
   speechSynthesis.cancel();
@@ -1020,6 +1451,7 @@ $("sound").addEventListener("click",()=>{
 });
 
 $("startBtn").addEventListener("click",()=>{
+
  $("start").style.display="none";
 
  say(
@@ -1029,21 +1461,28 @@ $("startBtn").addEventListener("click",()=>{
  );
 
  setTimeout(()=>{
+
   msg("Tahniah! Anda layak menyertai permainan ini.");
+
   say("Tahniah! Anda layak menyertai permainan ini.");
+
  },4000);
 });
 
-/* SAIZ SKRIN */
-
-function resize(){
- camera.aspect=innerWidth/innerHeight;
- camera.updateProjectionMatrix();
- renderer.setSize(innerWidth,innerHeight);
-}
+/* ==================================================
+   19. MULAKAN GAME
+================================================== */
 
 init();
 
+}catch(error){
+
+ showFatalError(error);
+
+}
+
+})();
 </script>
+
 </body>
 </html>
