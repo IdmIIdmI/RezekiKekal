@@ -52,8 +52,7 @@ canvas{display:block;position:fixed;inset:0;z-index:0}
  height:116px;z-index:8;pointer-events:none;
 }
 #stickArea{
- position:absolute;left:50%;bottom:0;
- transform:translateX(-50%);
+ position:absolute;left:14px;bottom:0;
  width:112px;height:112px;
  border:2px solid #ffffff88;border-radius:50%;
  background:#ffffff20;pointer-events:auto;
@@ -73,8 +72,12 @@ button{
  background:#07516b;border:1px solid #bcecff;
  color:white;border-radius:12px;
  padding:12px 3px;font-size:11px;font-weight:bold;
+ cursor:pointer;
 }
 button:active{background:#00a5d0}
+button:disabled{
+ opacity:.35;filter:grayscale(1);
+}
 #start,#ritual{
  position:fixed;inset:0;z-index:20;
  display:flex;align-items:center;justify-content:center;
@@ -85,10 +88,18 @@ button:active{background:#00a5d0}
  background:#0b3547;border:2px solid #f3d98a;
  border-radius:20px;
 }
-#ritual{display:none}
+#ritual{display:none;pointer-events:none}
+#ritualBox{pointer-events:auto}
 #arabic{font-size:27px;line-height:1.8;color:#ffe6a0}
+#zikirCount{color:#bcecff}
+#zikirDone{
+ width:100%;padding:14px;margin-top:8px;
+ background:#087b57;border-color:#a5f5c7;
+ font-size:13px;
+}
+#ritualHint{font-size:12px;color:#d9eff5}
 #result{
- display:none;position:fixed;z-index:12;
+ display:none;position:fixed;z-index:25;
  top:40%;left:50%;transform:translate(-50%,-50%);
  background:#092e40;border:2px solid #ffe08b;
  border-radius:18px;padding:20px;
@@ -111,8 +122,9 @@ button:active{background:#00a5d0}
 @media(max-width:380px){
  .buttons{grid-template-columns:repeat(2,61px)}
  button{padding:10px 2px;font-size:10px}
- #stickArea{width:100px;height:100px}
+ #stickArea{width:100px;height:100px;left:10px}
  #stick{left:28px;top:28px}
+ #soundStatus{bottom:125px}
 }
 </style>
 </head>
@@ -140,7 +152,7 @@ button:active{background:#00a5d0}
  <div class="buttons">
   <button id="cast">🎯 BALING</button>
   <button id="reel">🌀 KARAU</button>
-  <button id="lift">⬆ ANGKAT</button>
+  <button id="lift" disabled>⬆ ANGKAT</button>
   <button id="sound">🔊 SUARA</button>
  </div>
 </div>
@@ -155,10 +167,12 @@ button:active{background:#00a5d0}
 <div id="ritual">
  <div id="ritualBox">
   <h2>ZIKIR SEBELUM MENGANGKAT</h2>
-  <p>Bacalah zikir dengan tenang.</p>
+  <p>Baca zikir ini sendiri dengan tenang.</p>
   <div id="arabic"></div>
   <h3 id="zikirText"></h3>
   <p id="zikirCount"></p>
+  <p id="ritualHint">Selepas selesai membaca, tekan butang di bawah. Kamu masih boleh mengarau tali.</p>
+  <button id="zikirDone">✓ SELESAI BACA</button>
  </div>
 </div>
 
@@ -215,7 +229,7 @@ window.addEventListener("unhandledrejection",e=>{
 try{
 
 /* ==================================================
-   1. MUATKAN THREE.JS
+   1. THREE.JS DAN PEMBOLEH UBAH
 ================================================== */
 
 const THREE=await import("three");
@@ -229,8 +243,15 @@ let biteTimer=0;
 let soundOn=true;
 let yaw=0,pitch=0;
 let joyOn=false,joyX=0,joyY=0;
-let ritualIndex=0,ritualTimer=null;
+let ritualIndex=0;
 let currentCatch=null;
+let hookedObject=null;
+let hookedKind="";
+let karauCount=0;
+let hookProgress=0;
+let biteStarted=false;
+let floatHomeZ=-12;
+let rodBaseRotation=0;
 
 const shrimpModels=[];
 const crabModels=[];
@@ -242,8 +263,8 @@ const loadedKinds=[];
 const failedKinds=[];
 
 const zikir=[
- ["سُبْحَانَ اللَّهِ","Subhanallah"],
  ["الْحَمْدُ لِلَّهِ","Alhamdulillah"],
+ ["سُبْحَانَ اللَّهِ","Subhanallah"],
  ["اللَّهُ أَكْبَرُ","Allahu Akbar"],
  ["اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ","Allahumma solli ala Muhammad"]
 ];
@@ -262,10 +283,20 @@ function say(text){
  speechSynthesis.speak(u);
 }
 
+function vibrate(pattern){
+ if(navigator.vibrate){
+  try{navigator.vibrate(pattern)}catch(e){}
+ }
+}
+
 function updateHUD(){
  $("score").textContent=score;
  $("count").textContent=count;
  $("weight").textContent=totalWeight.toFixed(2);
+}
+
+function setLiftEnabled(enabled){
+ $("lift").disabled=!enabled;
 }
 
 /* ==================================================
@@ -320,7 +351,6 @@ function init(){
  scene.add(camera);
 
  window.addEventListener("resize",resize);
-
  renderer.setAnimationLoop(animate);
 
  msg("Sungai sedia. Tekan MULA PERMAINAN.");
@@ -461,7 +491,7 @@ function makeRocks(){
 }
 
 /* ==================================================
-   4. RIak AIR
+   4. RIAK AIR
 ================================================== */
 
 function makeRipples(){
@@ -634,24 +664,15 @@ function makeFloat(){
  black.position.y=.13;
  g.add(black);
 
- g.position.set(0,.05,-12);
+ g.position.set(0,.05,floatHomeZ);
  scene.add(g);
 
  floatObj=g;
 }
 
 /* ==================================================
-   7. CARI MODEL LUARAN
+   7. MUATKAN MODEL LUARAN
 ================================================== */
-
-/*
- MODEL UDANG:
- https://polyfork.dev/cdn/mantis-shrimp-base.glb
-
- Model lain dicari melalui katalog 3DAssets.dev.
- Model luar hanya dimuatkan jika pautannya berjaya.
- Jika gagal, permainan utama masih boleh dimainkan.
-*/
 
 async function loadExternalAssets(){
 
@@ -718,7 +739,7 @@ async function searchAndLoad(query,category,kind){
  }catch(error){
 
   console.warn("Carian "+kind+" gagal:",error);
-  failedKinds.push(kind);
+  if(!failedKinds.includes(kind))failedKinds.push(kind);
   return false;
  }
 }
@@ -851,13 +872,13 @@ function loadGLB(url,kind){
     try{
 
      placeLoadedModel(gltf,kind);
-     loadedKinds.push(kind);
+     if(!loadedKinds.includes(kind))loadedKinds.push(kind);
      resolve(true);
 
     }catch(error){
 
      console.error("Ralat model "+kind,error);
-     failedKinds.push(kind);
+     if(!failedKinds.includes(kind))failedKinds.push(kind);
      resolve(false);
     }
    },
@@ -867,7 +888,7 @@ function loadGLB(url,kind){
    error=>{
 
     console.warn("GLB gagal dimuatkan:",kind,error);
-    failedKinds.push(kind);
+    if(!failedKinds.includes(kind))failedKinds.push(kind);
     resolve(false);
    }
   );
@@ -919,14 +940,10 @@ function placeLoadedModel(gltf,kind){
 
    const model=original.clone(true);
 
-   model.position.set(
-    -3+i*3,
-    -.35,
-    -7-i*2
-   );
-
+   model.position.set(-3+i*3,-.35,-7-i*2);
    model.rotation.y=Math.PI/2;
    model.userData.phase=Math.random()*6;
+   model.userData.home=model.position.clone();
 
    scene.add(model);
    shrimpModels.push(model);
@@ -934,16 +951,20 @@ function placeLoadedModel(gltf,kind){
 
   if(gltf.animations&&gltf.animations.length){
 
-   const mixer=new THREE.AnimationMixer(original);
+   const animated=original.clone(true);
+   const mixer=new THREE.AnimationMixer(animated);
 
    gltf.animations.forEach(clip=>{
     mixer.clipAction(clip).play();
    });
 
-   original.position.set(-3,-.35,-7);
-   scene.add(original);
+   animated.position.set(-3,-.35,-7);
+   animated.userData.phase=Math.random()*6;
+   animated.userData.home=animated.position.clone();
+
+   scene.add(animated);
    mixers.push(mixer);
-   shrimpModels.push(original);
+   shrimpModels.push(animated);
   }
  }
 
@@ -953,14 +974,10 @@ function placeLoadedModel(gltf,kind){
 
    const model=original.clone(true);
 
-   model.position.set(
-    -5+i*3.2,
-    -.55,
-    -10-i*5
-   );
-
+   model.position.set(-5+i*3.2,-.55,-10-i*5);
    model.rotation.y=Math.PI/2;
    model.userData.phase=Math.random()*6;
+   model.userData.home=model.position.clone();
 
    scene.add(model);
    fishModels.push(model);
@@ -980,6 +997,7 @@ function placeLoadedModel(gltf,kind){
    );
 
    model.userData.phase=Math.random()*6;
+   model.userData.home=model.position.clone();
 
    scene.add(model);
    crabModels.push(model);
@@ -992,12 +1010,7 @@ function placeLoadedModel(gltf,kind){
 
    const model=original.clone(true);
 
-   model.position.set(
-    -4+i*4,
-    .02,
-    -8-i*5
-   );
-
+   model.position.set(-4+i*4,.02,-8-i*5);
    model.rotation.set(
     Math.random()*.2,
     Math.random()*6,
@@ -1005,6 +1018,8 @@ function placeLoadedModel(gltf,kind){
    );
 
    model.userData.phase=Math.random()*6;
+   model.userData.home=model.position.clone();
+   model.userData.kind=kind;
 
    scene.add(model);
    trashModels.push(model);
@@ -1058,7 +1073,6 @@ function joyEnd(){
 }
 
 area.addEventListener("pointerdown",e=>{
-
  area.setPointerCapture(e.pointerId);
  joyOn=true;
  joyMove(e);
@@ -1069,7 +1083,111 @@ area.addEventListener("pointerup",joyEnd);
 area.addEventListener("pointercancel",joyEnd);
 
 /* ==================================================
-   14. SISTEM MEMANCING
+   14. PILIH OBJEK SEBENAR UNTUK DIPANCING
+================================================== */
+
+function chooseVisibleTarget(){
+
+ const choices=[];
+
+ fishModels.forEach(m=>choices.push({model:m,kind:"fish"}));
+ shrimpModels.forEach(m=>choices.push({model:m,kind:"shrimp"}));
+ crabModels.forEach(m=>choices.push({model:m,kind:"crab"}));
+ trashModels.forEach(m=>choices.push({
+  model:m,
+  kind:m.userData.kind==="can"?"can":"bottle"
+ }));
+
+ if(!choices.length)return null;
+
+ return choices[Math.floor(Math.random()*choices.length)];
+}
+
+function catchData(kind){
+
+ if(kind==="fish"){
+  const names=[
+   "Ikan Lampam","Ikan Patin","Ikan Tilapia",
+   "Ikan Baung","Ikan Keli","Ikan Haruan"
+  ];
+
+  return {
+   name:names[Math.floor(Math.random()*names.length)],
+   weight:.3+Math.random()*3,
+   points:20,
+   type:"ikan"
+  };
+ }
+
+ if(kind==="shrimp"){
+  return {
+   name:"Udang Galah",
+   weight:.05+Math.random()*.4,
+   points:35,
+   type:"udang"
+  };
+ }
+
+ if(kind==="crab"){
+  return {
+   name:"Ketam Sungai",
+   weight:.1+Math.random()*.5,
+   points:30,
+   type:"ketam"
+  };
+ }
+
+ if(kind==="can"){
+  return {
+   name:"Tin Minuman",
+   weight:.1+Math.random()*.8,
+   points:-5,
+   type:"sampah"
+  };
+ }
+
+ return {
+  name:"Botol Plastik",
+  weight:.1+Math.random()*.8,
+  points:-5,
+  type:"sampah"
+ };
+}
+
+function startBite(){
+
+ if(biting)return;
+
+ biting=true;
+ reeling=false;
+ biteStarted=true;
+ karauCount=0;
+ hookProgress=0;
+
+ const target=chooseVisibleTarget();
+
+ if(target){
+  hookedObject=target.model;
+  hookedKind=target.kind;
+  currentCatch=catchData(target.kind);
+  hookedObject.userData.hooked=true;
+  hookedObject.userData.hookHome=hookedObject.position.clone();
+ }else{
+  hookedObject=null;
+  hookedKind="fish";
+  currentCatch=catchData("fish");
+ }
+
+ vibrate([350,120,350,120,500]);
+
+ msg("🐟 IKAN MAKAN UMPAN! CEPAT KARAU!");
+ say("Ikan makan umpan! Cepat karau!");
+
+ $("lift").disabled=true;
+}
+
+/* ==================================================
+   15. SISTEM MEMANCING
 ================================================== */
 
 function cast(){
@@ -1082,13 +1200,21 @@ function cast(){
  casted=true;
  biting=false;
  reeling=false;
+ biteStarted=false;
+ hookedObject=null;
+ hookedKind="";
+ currentCatch=null;
+ karauCount=0;
+ hookProgress=0;
+ ritualIndex=0;
+
+ setLiftEnabled(false);
 
  biteTimer=5+Math.random()*7;
 
- floatObj.position.set(0,.05,-12);
+ floatObj.position.set(0,.05,floatHomeZ);
 
  msg("Umpan dilontarkan. Tunggu ikan menyambar...");
-
  say("Umpan sudah dilontarkan. Tunggu ikan memakan umpan.");
 }
 
@@ -1099,71 +1225,37 @@ function reel(){
   return;
  }
 
+ if(!biting){
+  msg("Belum ada tarikan. Tunggu ikan makan umpan.");
+  return;
+ }
+
  reeling=true;
+ karauCount++;
+ hookProgress=Math.min(1,hookProgress+.075);
 
- if(biting){
-  msg("Ikan sedang melawan! Teruskan mengarau!");
+ if(hookedObject){
+  const home=hookedObject.userData.hookHome;
+  if(home){
+   const targetZ=home.z+(floatHomeZ-home.z)*hookProgress*.55;
+   hookedObject.position.z=THREE.MathUtils.lerp(
+    hookedObject.position.z,targetZ,.22
+   );
+  }
+ }
+
+ if(ritualIndex>0){
+  msg("Teruskan mengarau! Ikan semakin hampir.");
  }else{
-  msg("Anda sedang mengarau tali...");
+  msg("Ikan sedang melawan! Teruskan mengarau!");
  }
+
+ vibrate(35);
 }
 
-function chooseCatch(){
-
- const n=Math.random();
-
- if(n<.48){
-
-  const names=[
-   "Ikan Lampam",
-   "Ikan Patin",
-   "Ikan Tilapia",
-   "Ikan Baung",
-   "Ikan Keli",
-   "Ikan Haruan"
-  ];
-
-  return {
-   name:names[Math.floor(Math.random()*names.length)],
-   weight:.3+Math.random()*3,
-   points:20,
-   type:"ikan"
-  };
- }
-
- if(n<.68){
-
-  return {
-   name:"Udang Galah",
-   weight:.05+Math.random()*.4,
-   points:35,
-   type:"udang"
-  };
- }
-
- if(n<.84){
-
-  return {
-   name:"Ketam Sungai",
-   weight:.1+Math.random()*.5,
-   points:30,
-   type:"ketam"
-  };
- }
-
- const trash=[
-  "Botol Plastik",
-  "Tin Minuman",
-  "Sampah Plastik"
- ];
-
- return {
-  name:trash[Math.floor(Math.random()*trash.length)],
-  weight:.1+Math.random()*.8,
-  points:-5,
-  type:"sampah"
- };
-}
+/* ==================================================
+   16. ZIKIR SEBELUM MENGANGKAT
+================================================== */
 
 function lift(){
 
@@ -1177,17 +1269,14 @@ function lift(){
   return;
  }
 
- currentCatch=chooseCatch();
- ritualIndex=0;
+ if(ritualIndex>=4){
+  finishCatch();
+  return;
+ }
 
  $("ritual").style.display="flex";
-
  showZikir();
 }
-
-/* ==================================================
-   15. ZIKIR SEBELUM ANGKAT
-================================================== */
 
 function showZikir(){
 
@@ -1197,30 +1286,49 @@ function showZikir(){
  $("zikirText").textContent=z[1];
  $("zikirCount").textContent=(ritualIndex+1)+" / 4";
 
- say(z[1]);
-
- clearTimeout(ritualTimer);
-
- ritualTimer=setTimeout(()=>{
-
-  if($("ritual").style.display!=="flex")return;
-
-  ritualIndex++;
-
-  if(ritualIndex<4){
-
-   showZikir();
-
-  }else{
-
-   $("ritual").style.display="none";
-   finishCatch();
-  }
-
- },2300);
+ $("zikirDone").textContent="✓ SELESAI BACA";
 }
 
+function completeZikir(){
+
+ if($("ritual").style.display!=="flex")return;
+
+ ritualIndex++;
+
+ if(hookedObject){
+  const home=hookedObject.userData.hookHome;
+  if(home){
+   hookProgress=Math.min(1,hookProgress+.1);
+   hookedObject.position.z=THREE.MathUtils.lerp(
+    hookedObject.position.z,
+    home.z+(floatHomeZ-home.z)*hookProgress*.55,
+    .5
+   );
+  }
+ }
+
+ if(ritualIndex<4){
+
+  showZikir();
+
+ }else{
+
+  $("ritual").style.display="none";
+  setLiftEnabled(true);
+  msg("Alhamdulillah. Empat zikir selesai. Tekan ANGKAT!");
+  say("Empat zikir selesai. Anda boleh mengangkat hasil pancingan.");
+ }
+}
+
+/* ==================================================
+   17. SELESAIKAN TANGKAPAN
+================================================== */
+
 function finishCatch(){
+
+ if(!currentCatch){
+  currentCatch=catchData("fish");
+ }
 
  const c=currentCatch;
 
@@ -1231,35 +1339,58 @@ function finishCatch(){
  updateHUD();
 
  $("catchName").textContent=c.name;
-
  $("catchWeight").textContent=
   "Berat: "+c.weight.toFixed(2)+" kg";
 
  $("catchScore").textContent=
-  "Mata: "+c.points;
+  c.points<0
+   ?"Mata: "+c.points+" (Sampah perlu dibuang dengan betul)"
+   :"Mata: +"+c.points;
 
  $("result").style.display="block";
 
- msg("Tahniah! Anda mendapat "+c.name);
+ msg(
+  c.type==="sampah"
+   ?"Anda mengutip sampah sungai. Terima kasih menjaga alam!"
+   :"Tahniah! Anda mendapat "+c.name
+ );
 
- say("Tahniah. Anda mendapat "+c.name);
+ say(
+  c.type==="sampah"
+   ?"Anda mendapat sampah. Jagalah kebersihan sungai."
+   :"Tahniah. Anda mendapat "+c.name
+ );
+
+ if(hookedObject){
+  hookedObject.userData.hooked=false;
+  hookedObject.visible=false;
+ }
 
  casted=false;
  biting=false;
  reeling=false;
+ biteStarted=false;
+ hookedObject=null;
+ hookedKind="";
+ currentCatch=null;
+ ritualIndex=0;
+ karauCount=0;
+ hookProgress=0;
 
- floatObj.position.set(0,.05,-12);
+ setLiftEnabled(false);
+
+ floatObj.position.set(0,.05,floatHomeZ);
+ rod.rotation.x=0;
 }
 
 function closeResult(){
 
  $("result").style.display="none";
-
  msg("Baling umpan untuk tangkapan seterusnya.");
 }
 
 /* ==================================================
-   16. ANIMASI DUNIA
+   18. ANIMASI DUNIA
 ================================================== */
 
 function animate(){
@@ -1276,9 +1407,7 @@ function animate(){
   yaw-=joyX*.018;
   pitch-=joyY*.009;
 
-  pitch=THREE.MathUtils.clamp(
-   pitch,-.3,.3
-  );
+  pitch=THREE.MathUtils.clamp(pitch,-.3,.3);
 
   camera.rotation.order="YXZ";
   camera.rotation.y=yaw;
@@ -1292,38 +1421,73 @@ function animate(){
   biteTimer-=dt;
 
   if(biteTimer<=0){
-
-   biting=true;
-
-   msg("🐟 ADA TARIKAN! Tekan KARAU dan ANGKAT!");
-
-   say("Ada ikan memakan umpan. Cepat karau tali.");
+   startBite();
   }
  }
 
- /* Pergerakan pelampung */
+ /* Pergerakan pelampung dan joran */
 
  if(biting){
 
+  const fight=Math.sin(t*13)*.12;
+
   floatObj.position.y=
-   -.2+Math.sin(t*14)*.12;
+   -.23+fight;
+
+  floatObj.position.x=
+   Math.sin(t*8)*.09;
 
   if(reeling){
-
-   floatObj.position.z+=dt*.6;
-
-   rod.rotation.x=
-    .15+Math.sin(t*8)*.08;
-
+   floatObj.position.z+=dt*.12;
+   rod.rotation.x=.22+Math.sin(t*9)*.1;
+   rod.rotation.z=Math.sin(t*7)*.07;
   }else{
-
-   rod.rotation.x=
-    .04+Math.sin(t*5)*.04;
+   rod.rotation.x=.1+Math.sin(t*5)*.06;
+   rod.rotation.z=Math.sin(t*4)*.025;
   }
 
  }else{
 
+  floatObj.position.y=.05+Math.sin(t*2)*.025;
+  floatObj.position.x=0;
   rod.rotation.x=Math.sin(t)*.015;
+  rod.rotation.z=0;
+ }
+
+ /* Gerakan objek yang sedang terkena mata kail */
+
+ if(hookedObject&&biting){
+
+  const home=hookedObject.userData.hookHome;
+
+  if(home){
+
+   const fightX=Math.sin(t*7)*.45;
+   const fightZ=Math.cos(t*5)*.35;
+
+   if(reeling){
+    hookedObject.position.x=THREE.MathUtils.lerp(
+     hookedObject.position.x,
+     fightX,.035
+    );
+
+    hookedObject.position.z=THREE.MathUtils.lerp(
+     hookedObject.position.z,
+     home.z+(floatHomeZ-home.z)*hookProgress*.55+fightZ,
+     .045
+    );
+   }else{
+    hookedObject.position.x=home.x+Math.sin(t*2)*.2;
+    hookedObject.position.z=home.z+Math.cos(t*2)*.12;
+   }
+
+   if(hookedKind==="fish"){
+    hookedObject.rotation.y=
+     Math.PI/2+Math.sin(t*12)*.45;
+   }else{
+    hookedObject.rotation.y+=Math.sin(t*8)*.012;
+   }
+  }
  }
 
  /* Tali pancing */
@@ -1336,9 +1500,11 @@ function animate(){
 
    const f=i/(a.count-1);
 
+   const tug=biting?Math.sin(t*12)*f*.12:0;
+
    a.setXYZ(
     i,
-    Math.sin(t+f*2)*.02,
+    Math.sin(t+f*2)*.02+tug,
     -f*.1-(biting?f*f*.2:0),
     -f*3.7
    );
@@ -1351,31 +1517,52 @@ function animate(){
 
  shrimpModels.forEach(s=>{
 
-  const p=s.userData.phase||0;
+  if(s.userData.hooked)return;
 
-  s.position.x+=Math.sin(t*1.5+p)*.0015;
-  s.position.y=-.35+Math.sin(t*5+p)*.025;
+  const p=s.userData.phase||0;
+  const home=s.userData.home;
+
+  if(home){
+   s.position.x=home.x+Math.sin(t*1.5+p)*.22;
+   s.position.y=home.y+Math.sin(t*5+p)*.025;
+   s.position.z=home.z+Math.cos(t*1.1+p)*.15;
+  }
+
   s.rotation.y=Math.PI/2+Math.sin(t*1.5+p)*.15;
  });
 
- /* Ikan berenang */
+ /* Ikan berenang kiri dan kanan */
 
  fishModels.forEach(f=>{
 
-  const p=f.userData.phase||0;
+  if(f.userData.hooked)return;
 
-  f.position.x+=Math.sin(t*.8+p)*.004;
-  f.position.z+=Math.cos(t*.5+p)*.003;
-  f.rotation.y=Math.PI/2+Math.sin(t+p)*.12;
+  const p=f.userData.phase||0;
+  const home=f.userData.home;
+
+  if(home){
+   f.position.x=home.x+Math.sin(t*.8+p)*1.1;
+   f.position.z=home.z+Math.cos(t*.5+p)*.45;
+  }
+
+  f.rotation.y=
+   Math.PI/2+Math.sin(t+p)*.28;
  });
 
  /* Ketam bergerak */
 
  crabModels.forEach(c=>{
 
-  const p=c.userData.phase||0;
+  if(c.userData.hooked)return;
 
-  c.position.x+=Math.sin(t*.8+p)*.001;
+  const p=c.userData.phase||0;
+  const home=c.userData.home;
+
+  if(home){
+   c.position.x=home.x+Math.sin(t*.8+p)*.35;
+   c.position.z=home.z+Math.cos(t*.7+p)*.15;
+  }
+
   c.rotation.y=Math.sin(t*1.5+p)*.12;
  });
 
@@ -1383,10 +1570,17 @@ function animate(){
 
  trashModels.forEach(o=>{
 
-  const p=o.userData.phase||0;
+  if(o.userData.hooked)return;
 
-  o.position.x+=Math.sin(t*.4+p)*.001;
-  o.position.z+=Math.sin(t*.3+p)*.001;
+  const p=o.userData.phase||0;
+  const home=o.userData.home;
+
+  if(home){
+   o.position.x=home.x+Math.sin(t*.4+p)*.2;
+   o.position.z=home.z+Math.sin(t*.3+p)*.18;
+  }
+
+  o.position.y=.02+Math.sin(t*1.4+p)*.035;
   o.rotation.z=Math.sin(t*.8+p)*.025;
  });
 
@@ -1410,7 +1604,7 @@ function animate(){
 }
 
 /* ==================================================
-   17. SAIZ SKRIN
+   19. SAIZ SKRIN
 ================================================== */
 
 function resize(){
@@ -1427,13 +1621,14 @@ function resize(){
 }
 
 /* ==================================================
-   18. BUTANG PERMAINAN
+   20. BUTANG PERMAINAN
 ================================================== */
 
 $("cast").addEventListener("click",cast);
 $("reel").addEventListener("click",reel);
 $("lift").addEventListener("click",lift);
 $("continue").addEventListener("click",closeResult);
+$("zikirDone").addEventListener("click",completeZikir);
 
 $("sound").addEventListener("click",()=>{
 
@@ -1463,14 +1658,13 @@ $("startBtn").addEventListener("click",()=>{
  setTimeout(()=>{
 
   msg("Tahniah! Anda layak menyertai permainan ini.");
-
   say("Tahniah! Anda layak menyertai permainan ini.");
 
  },4000);
 });
 
 /* ==================================================
-   19. MULAKAN GAME
+   21. MULAKAN GAME
 ================================================== */
 
 init();
