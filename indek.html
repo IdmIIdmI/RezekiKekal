@@ -1,0 +1,679 @@
+
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>REAL FISHING - MISTERI SUNGAI</title>
+<style>
+*{box-sizing:border-box;touch-action:none}
+body{margin:0;overflow:hidden;background:#071b25;color:white;font-family:Arial}
+canvas{display:block}
+#hud{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;pointer-events:none;z-index:5}
+.panel{background:#071b25cc;border:1px solid #8bd4e8;border-radius:12px;padding:9px 12px;font-size:13px}
+#message{position:fixed;top:65px;left:50%;transform:translateX(-50%);background:#071b25dd;padding:12px 18px;border-radius:14px;text-align:center;min-width:220px;z-index:5}
+#controls{position:fixed;bottom:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:end;padding:0 16px;z-index:8}
+#stickArea{width:125px;height:125px;border:2px solid #ffffff77;border-radius:50%;background:#ffffff20;position:relative}
+#stick{width:48px;height:48px;border-radius:50%;background:#b7e9ffcc;position:absolute;left:37px;top:37px;box-shadow:0 0 12px #fff}
+.buttons{display:grid;grid-template-columns:repeat(2,75px);gap:8px}
+button{border:1px solid #b9eaff;background:#07516b;color:white;border-radius:13px;padding:13px 5px;font-weight:bold;font-size:12px}
+button:active{background:#00a9d5}
+#ritual{display:none;position:fixed;inset:0;background:#00131ddd;z-index:20;align-items:center;justify-content:center;text-align:center;padding:20px}
+#ritualBox{background:#0b3546;border:2px solid #f5dc83;border-radius:20px;padding:25px;width:min(340px,90vw)}
+#arabic{font-size:30px;line-height:1.8;color:#ffe8a0}
+#start{position:fixed;inset:0;background:linear-gradient(#062d43dd,#03111ddd),url('https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=1200') center/cover;z-index:30;display:flex;align-items:center;justify-content:center;text-align:center}
+#startBox{background:#062536eF;border:2px solid #b5eaff;border-radius:20px;padding:25px;width:85%;max-width:380px}
+#result{position:fixed;top:35%;left:50%;transform:translate(-50%,-50%);z-index:10;background:#092b3c;border:2px solid #ffe08b;border-radius:18px;padding:18px;text-align:center;display:none;min-width:220px}
+#hint{position:fixed;bottom:150px;left:50%;transform:translateX(-50%);font-size:11px;color:#d7f5ff;white-space:nowrap;pointer-events:none}
+</style>
+</head>
+<body>
+
+<div id="hud">
+ <div class="panel">🎣 REAL FISHING<br>Skor: <span id="score">0</span></div>
+ <div class="panel">Tangkapan: <span id="count">0</span><br>Berat: <span id="weight">0</span> kg</div>
+</div>
+
+<div id="message">Selamat datang ke Misteri Sungai</div>
+<div id="hint">Joystick: gerakkan pandangan • BALING: lontar umpan</div>
+
+<div id="controls">
+ <div id="stickArea"><div id="stick"></div></div>
+ <div class="buttons">
+  <button id="cast">🎯 BALING</button>
+  <button id="reel">🌀 KARAU</button>
+  <button id="lift">⬆ ANGKAT</button>
+  <button id="sound">🔊 SUARA</button>
+ </div>
+</div>
+
+<div id="result">
+ <h2 id="catchName">Tangkapan!</h2>
+ <p id="catchWeight"></p>
+ <p id="catchScore"></p>
+ <button onclick="closeResult()">TERUSKAN</button>
+</div>
+
+<div id="ritual">
+ <div id="ritualBox">
+  <h2>Alhamdulillah!</h2>
+  <p>Sebelum mengangkat tangkapan, bacalah zikir ini.</p>
+  <div id="arabic"></div>
+  <h3 id="zikirText"></h3>
+  <p id="zikirCount">1 / 4</p>
+ </div>
+</div>
+
+<div id="start">
+ <div id="startBox">
+  <h1>🎣 REAL FISHING</h1>
+  <h2>MISTERI SUNGAI</h2>
+  <p>Terokai sungai, baling umpan dan kumpulkan hasil tangkapan.</p>
+  <p>Mulakan dengan membaca Bismillahirrahmanirrahim sebanyak 3 kali.</p>
+  <button id="startBtn">MULA PERMAINAN</button>
+ </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.min.js"></script>
+<script>
+"use strict";
+
+/* =========================================
+   REAL FISHING - MISTERI SUNGAI
+   Sistem asas permainan 3D
+========================================= */
+
+const $=id=>document.getElementById(id);
+
+let scene,camera,renderer,clock;
+let rod,line,lineGeometry,floatObj;
+let water,waterMaterial;
+let score=0,count=0,totalWeight=0;
+let isCast=false,isBiting=false,isReeling=false;
+let biteTimer=0,fishPower=0;
+let currentCatch=null;
+let ritualIndex=0;
+let soundOn=true;
+let yaw=0,pitch=0;
+let joystickActive=false;
+let stickX=0,stickY=0;
+let rodPoints=[];
+let catchObjects=[];
+let particles=[];
+
+const zikir=[
+ {ar:"سُبْحَانَ اللَّهِ",ms:"Subhanallah"},
+ {ar:"الْحَمْدُ لِلَّهِ",ms:"Alhamdulillah"},
+ {ar:"اللَّهُ أَكْبَرُ",ms:"Allahu Akbar"},
+ {ar:"اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ",ms:"Allahumma solli ala Muhammad"}
+];
+
+function say(text){
+ if(!soundOn)return;
+ if(!("speechSynthesis" in window))return;
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(text);
+ u.lang="ms-MY";
+ u.rate=.9;
+ u.pitch=1.05;
+ speechSynthesis.speak(u);
+}
+
+function message(text){
+ $("message").textContent=text;
+}
+
+function updateHUD(){
+ $("score").textContent=score;
+ $("count").textContent=count;
+ $("weight").textContent=totalWeight.toFixed(2);
+}
+
+/* SCENE */
+
+function init(){
+ scene=new THREE.Scene();
+ scene.background=new THREE.Color(0x91c9dc);
+ scene.fog=new THREE.Fog(0x91c9dc,30,100);
+
+ camera=new THREE.PerspectiveCamera(
+  65,innerWidth/innerHeight,.1,200
+ );
+ camera.position.set(0,2.8,8);
+ camera.lookAt(0,0,-10);
+
+ renderer=new THREE.WebGLRenderer({
+  antialias:true,
+  powerPreference:"high-performance"
+ });
+ renderer.setSize(innerWidth,innerHeight);
+ renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+ renderer.shadowMap.enabled=false;
+ document.body.appendChild(renderer.domElement);
+
+ clock=new THREE.Clock();
+
+ const hemi=new THREE.HemisphereLight(0xdaf5ff,0x31513b,2);
+ scene.add(hemi);
+
+ const sun=new THREE.DirectionalLight(0xffffff,2);
+ sun.position.set(-10,20,10);
+ scene.add(sun);
+
+ createRiver();
+ createBanks();
+ createTrees();
+ createRod();
+ createFloat();
+ createFishDecorations();
+
+ window.addEventListener("resize",resize);
+ animate();
+}
+
+/* SUNGAI */
+
+function createRiver(){
+ const geo=new THREE.PlaneGeometry(100,100,1,1);
+ waterMaterial=new THREE.MeshStandardMaterial({
+  color:0x087b99,
+  roughness:.23,
+  metalness:.15,
+  transparent:true,
+  opacity:.94
+ });
+ water=new THREE.Mesh(geo,waterMaterial);
+ water.rotation.x=-Math.PI/2;
+ water.position.y=0;
+ scene.add(water);
+
+ const bed=new THREE.Mesh(
+  new THREE.PlaneGeometry(100,100),
+  new THREE.MeshStandardMaterial({color:0x344b36})
+ );
+ bed.rotation.x=-Math.PI/2;
+ bed.position.y=-1.5;
+ scene.add(bed);
+
+ for(let i=0;i<30;i++){
+  const ripple=new THREE.Mesh(
+   new THREE.RingGeometry(.15,.2,24),
+   new THREE.MeshBasicMaterial({
+    color:0xb7f3ff,
+    transparent:true,
+    opacity:.3,
+    side:THREE.DoubleSide
+   })
+  );
+  ripple.rotation.x=-Math.PI/2;
+  ripple.position.set(
+   (Math.random()-.5)*35,.025,-Math.random()*40
+  );
+  ripple.userData.phase=Math.random()*6;
+  scene.add(ripple);
+  particles.push(ripple);
+ }
+}
+
+function createBanks(){
+ const mat=new THREE.MeshStandardMaterial({color:0x426d38});
+ const left=new THREE.Mesh(new THREE.BoxGeometry(8,2,100),mat);
+ left.position.set(-13,.2,-25);
+ scene.add(left);
+ const right=left.clone();
+ right.position.x=13;
+ scene.add(right);
+
+ const sand=new THREE.MeshStandardMaterial({color:0x927c4b});
+ for(let side of [-1,1]){
+  const bank=new THREE.Mesh(
+   new THREE.BoxGeometry(5,.6,100),sand
+  );
+  bank.position.set(side*10,-.1,-25);
+  scene.add(bank);
+ }
+}
+
+function createTrees(){
+ const trunkMat=new THREE.MeshStandardMaterial({color:0x65442b});
+ const leafMat=new THREE.MeshStandardMaterial({color:0x176b37});
+ for(let side of [-1,1]){
+  for(let i=0;i<17;i++){
+   const x=side*(13+Math.random()*5);
+   const z=-i*4+5;
+   const trunk=new THREE.Mesh(
+    new THREE.CylinderGeometry(.18,.3,3,7),trunkMat
+   );
+   trunk.position.set(x,1.4,z);
+   scene.add(trunk);
+   const leaves=new THREE.Mesh(
+    new THREE.SphereGeometry(1.4,8,7),leafMat
+   );
+   leaves.scale.set(1.2,1.4,1.1);
+   leaves.position.set(x,3.5,z);
+   scene.add(leaves);
+  }
+ }
+}
+
+/* JORAN 3D */
+
+function createRod(){
+ const rodGroup=new THREE.Group();
+ rodGroup.position.set(.65,-.65,-1.1);
+ camera.add(rodGroup);
+ scene.add(camera);
+
+ const shaftMat=new THREE.MeshStandardMaterial({
+  color:0x252d32,metalness:.65,roughness:.25
+ });
+ const gripMat=new THREE.MeshStandardMaterial({color:0x9a6234});
+
+ const shaft=new THREE.Mesh(
+  new THREE.CylinderGeometry(.025,.055,4,10),shaftMat
+ );
+ shaft.rotation.x=-Math.PI/2;
+ shaft.rotation.z=-.15;
+ shaft.position.set(0,0,-1.5);
+ rodGroup.add(shaft);
+
+ const handle=new THREE.Mesh(
+  new THREE.CylinderGeometry(.075,.09,.65,12),gripMat
+ );
+ handle.rotation.x=-Math.PI/2;
+ handle.position.set(0,-.03,-.1);
+ rodGroup.add(handle);
+
+ const reel=new THREE.Mesh(
+  new THREE.CylinderGeometry(.19,.19,.12,20),shaftMat
+ );
+ reel.rotation.x=Math.PI/2;
+ reel.position.set(0,-.2,-.65);
+ rodGroup.add(reel);
+
+ const spool=new THREE.Mesh(
+  new THREE.CylinderGeometry(.11,.11,.16,20),
+  new THREE.MeshStandardMaterial({color:0xc2c9ca,metalness:.8})
+ );
+ spool.rotation.x=Math.PI/2;
+ spool.position.set(0,-.2,-.65);
+ rodGroup.add(spool);
+
+ for(let i=0;i<7;i++){
+  const ring=new THREE.Mesh(
+   new THREE.TorusGeometry(.065,.012,6,12),
+   new THREE.MeshStandardMaterial({color:0xd6dce0,metalness:.8})
+  );
+  ring.position.set(0,.01,-.5-i*.43);
+  rodGroup.add(ring);
+ }
+
+ rod=rodGroup;
+
+ const points=[];
+ for(let i=0;i<12;i++){
+  points.push(new THREE.Vector3(0,0,-.1-i*.35));
+ }
+ lineGeometry=new THREE.BufferGeometry().setFromPoints(points);
+ line=new THREE.Line(
+  lineGeometry,
+  new THREE.LineBasicMaterial({color:0xe9ffff})
+ );
+ rodGroup.add(line);
+}
+
+/* PELAMPUNG */
+
+function createFloat(){
+ const group=new THREE.Group();
+ const red=new THREE.Mesh(
+  new THREE.SphereGeometry(.075,12,10),
+  new THREE.MeshStandardMaterial({color:0xff2929})
+ );
+ red.scale.set(1,1.8,1);
+ group.add(red);
+
+ const white=new THREE.Mesh(
+  new THREE.SphereGeometry(.07,12,10),
+  new THREE.MeshStandardMaterial({color:0xffffff})
+ );
+ white.position.y=-.12;
+ group.add(white);
+
+ group.position.set(0,-.1,-10);
+ scene.add(group);
+ floatObj=group;
+}
+
+/* OBJEK HIDUP DAN HASIL SUNGAI */
+
+function createFishDecorations(){
+ for(let i=0;i<12;i++){
+  const fish=makeFish(
+   [0xefa92e,0xe8e8d2,0xd46b37,0x8aa4b8][i%4]
+  );
+  fish.position.set(
+   (Math.random()-.5)*12,-.65,-5-Math.random()*30
+  );
+  fish.scale.setScalar(.45+Math.random()*.4);
+  fish.userData.speed=.5+Math.random();
+  scene.add(fish);
+  catchObjects.push(fish);
+ }
+}
+
+function makeFish(color){
+ const group=new THREE.Group();
+ const body=new THREE.Mesh(
+  new THREE.SphereGeometry(.38,16,12),
+  new THREE.MeshStandardMaterial({
+   color,roughness:.35,metalness:.05
+  })
+ );
+ body.scale.set(1.5,.65,.65);
+ group.add(body);
+
+ const tail=new THREE.Mesh(
+  new THREE.ConeGeometry(.28,.45,4),
+  new THREE.MeshStandardMaterial({color})
+ );
+ tail.rotation.z=Math.PI/2;
+ tail.position.x=-.65;
+ group.add(tail);
+
+ const eyeMat=new THREE.MeshBasicMaterial({color:0x111111});
+ for(let s of [-1,1]){
+  const eye=new THREE.Mesh(
+   new THREE.SphereGeometry(.045,8,8),eyeMat
+  );
+  eye.position.set(.35,.12,s*.2);
+  group.add(eye);
+ }
+ return group;
+}
+
+function makeShrimp(){
+ const g=new THREE.Group();
+ const shell=new THREE.Mesh(
+  new THREE.SphereGeometry(.18,12,10),
+  new THREE.MeshStandardMaterial({color:0xe87939})
+ );
+ shell.scale.set(1.8,.6,.7);
+ g.add(shell);
+ for(let i=0;i<5;i++){
+  const segment=new THREE.Mesh(
+   new THREE.SphereGeometry(.12,8,8),
+   new THREE.MeshStandardMaterial({color:0xf29a50})
+  );
+  segment.position.x=-.2-i*.13;
+  segment.scale.set(1,.7,.8);
+  g.add(segment);
+ }
+ return g;
+}
+
+function makeCrab(){
+ const g=new THREE.Group();
+ const shell=new THREE.Mesh(
+  new THREE.SphereGeometry(.35,12,8),
+  new THREE.MeshStandardMaterial({color:0xc94d35})
+ );
+ shell.scale.set(1.3,.45,1);
+ g.add(shell);
+ for(let s of [-1,1]){
+  for(let i=0;i<3;i++){
+   const leg=new THREE.Mesh(
+    new THREE.CylinderGeometry(.025,.035,.38,6),
+    new THREE.MeshStandardMaterial({color:0xc94d35})
+   );
+   leg.rotation.z=(s===1?-.7:.7);
+   leg.position.set(s*.3,.0,(i-1)*.2);
+   g.add(leg);
+  }
+ }
+ return g;
+}
+
+/* PERGERAKAN JOYSTICK */
+
+const stickArea=$("stickArea");
+const stick=$("stick");
+
+function joystickStart(e){
+ joystickActive=true;
+ joystickMove(e);
+}
+function joystickMove(e){
+ if(!joystickActive)return;
+ const r=stickArea.getBoundingClientRect();
+ const x=e.clientX-r.left-r.width/2;
+ const y=e.clientY-r.top-r.height/2;
+ const max=38;
+ const len=Math.hypot(x,y);
+ const scale=len>max?max/len:1;
+ stickX=x*scale/max;
+ stickY=y*scale/max;
+ stick.style.left=(37+x*scale)+"px";
+ stick.style.top=(37+y*scale)+"px";
+}
+function joystickEnd(){
+ joystickActive=false;
+ stickX=0;stickY=0;
+ stick.style.left="37px";
+ stick.style.top="37px";
+}
+
+stickArea.addEventListener("pointerdown",e=>{
+ stickArea.setPointerCapture(e.pointerId);
+ joystickStart(e);
+});
+stickArea.addEventListener("pointermove",joystickMove);
+stickArea.addEventListener("pointerup",joystickEnd);
+stickArea.addEventListener("pointercancel",joystickEnd);
+
+/* BALING UMPAN */
+
+function cast(){
+ if(isCast){
+  message("Umpan sudah berada di dalam sungai.");
+  return;
+ }
+ isCast=true;
+ isBiting=false;
+ floatObj.position.set(0,.1,-12);
+ message("Umpan dilontarkan! Tunggu ikan menyambar...");
+ say("Umpan sudah dilontarkan. Tunggu ikan memakan umpan.");
+ biteTimer=4+Math.random()*7;
+}
+
+function reelIn(){
+ if(!isCast){
+  message("Baling umpan dahulu.");
+  return;
+ }
+ isReeling=true;
+ fishPower=Math.min(100,fishPower+10);
+ message("Anda sedang mengarau tali...");
+ if(isBiting){
+  message("Ikan sedang melawan! Teruskan mengarau.");
+ }
+}
+
+function lift(){
+ if(!isCast){
+  message("Baling umpan dahulu.");
+  return;
+ }
+ if(!isBiting){
+  message("Belum ada tarikan. Tunggu dahulu.");
+  return;
+ }
+ currentCatch=chooseCatch();
+ ritualIndex=0;
+ $("ritual").style.display="flex";
+ showZikir();
+}
+
+/* PILIH HASIL */
+
+function chooseCatch(){
+ const n=Math.random();
+ if(n<.52){
+  const names=["Ikan Lampam","Ikan Patin","Ikan Tilapia","Ikan Baung","Ikan Keli","Ikan Haruan"];
+  return {name:names[Math.floor(Math.random()*names.length)],weight:.3+Math.random()*3,points:20};
+ }
+ if(n<.68)return {name:"Udang Galah",weight:.05+Math.random()*.4,points:35};
+ if(n<.78)return {name:"Ketam Sungai",weight:.1+Math.random()*.5,points:30};
+ return {name:"Sampah Sungai",weight:.1+Math.random()*.8,points:-5};
+}
+
+/* ZIKIR SEBELUM ANGKAT */
+
+function showZikir(){
+ const z=zikir[ritualIndex];
+ $("arabic").textContent=z.ar;
+ $("zikirText").textContent=z.ms;
+ $("zikirCount").textContent=(ritualIndex+1)+" / 4";
+ say(z.ms);
+ setTimeout(()=>{
+  if($("ritual").style.display==="flex"){
+   ritualIndex++;
+   if(ritualIndex<4){
+    showZikir();
+   }else{
+    $("ritual").style.display="none";
+    finishCatch();
+   }
+  }
+ },2200);
+}
+
+function finishCatch(){
+ const c=currentCatch;
+ score+=c.points;
+ count++;
+ totalWeight+=c.weight;
+ updateHUD();
+
+ $("catchName").textContent=c.name;
+ $("catchWeight").textContent="Berat: "+c.weight.toFixed(2)+" kg";
+ $("catchScore").textContent="Mata: "+c.points;
+ $("result").style.display="block";
+
+ message("Tahniah! Anda berjaya mendapat tangkapan.");
+ say("Tahniah! Anda mendapat "+c.name);
+
+ isCast=false;
+ isBiting=false;
+ isReeling=false;
+ fishPower=0;
+ floatObj.position.set(0,-.1,-10);
+}
+
+function closeResult(){
+ $("result").style.display="none";
+ message("Baling umpan untuk tangkapan seterusnya.");
+}
+
+function randomBite(){
+ if(!isCast||isBiting)return;
+ isBiting=true;
+ floatObj.position.y=-.25;
+ message("🐟 ADA TARIKAN! Tekan KARAU dan ANGKAT!");
+ say("Perhatian! Ada ikan memakan umpan. Cepat karau tali.");
+}
+
+/* ANIMASI */
+
+function animate(){
+ requestAnimationFrame(animate);
+ const t=clock.getElapsedTime();
+
+ if(joystickActive){
+  yaw-=stickX*.025;
+  pitch-=stickY*.012;
+  pitch=THREE.MathUtils.clamp(pitch,-.35,.35);
+  camera.rotation.order="YXZ";
+  camera.rotation.y=yaw;
+  camera.rotation.x=pitch;
+ }
+
+ if(isCast&&!isBiting){
+  biteTimer-=clock.getDelta();
+  if(biteTimer<=0)randomBite();
+ }
+
+ if(isBiting){
+  floatObj.position.y=-.2+Math.sin(t*15)*.12;
+  if(isReeling){
+   fishPower-=.15;
+   floatObj.position.z+=.025;
+  }
+ }
+
+ if(rod){
+  const bend=isBiting?Math.sin(t*8)*.08+.18:0;
+  rod.rotation.x=bend;
+  rod.rotation.z=Math.sin(t*1.5)*.015;
+ }
+
+ if(line){
+  const arr=line.geometry.attributes.position;
+  for(let i=0;i<arr.count;i++){
+   const f=i/(arr.count-1);
+   arr.setXYZ(i,
+    Math.sin(f*1.2+t)*.025,
+    -f*.12-(isBiting?f*f*.22:0),
+    -f*3.7
+   );
+  }
+  arr.needsUpdate=true;
+ }
+
+ particles.forEach((p,i)=>{
+  const s=1+((t+p.userData.phase)%4)*.3;
+  p.scale.set(s,s,s);
+  p.material.opacity=.3-(s-1)*.07;
+ });
+
+ catchObjects.forEach((f,i)=>{
+  f.position.x+=Math.sin(t*.5+i)*.001;
+  f.rotation.y=Math.sin(t+i)*.12;
+ });
+
+ waterMaterial.color.setHSL(.52,.7,.29+Math.sin(t*.4)*.015);
+
+ renderer.render(scene,camera);
+}
+
+/* BUTANG */
+
+$("cast").addEventListener("click",cast);
+$("reel").addEventListener("click",reelIn);
+$("lift").addEventListener("click",lift);
+
+$("sound").addEventListener("click",()=>{
+ soundOn=!soundOn;
+ $("sound").textContent=soundOn?"🔊 SUARA":"🔇 SENYAP";
+ if(!soundOn)speechSynthesis.cancel();
+});
+
+$("startBtn").addEventListener("click",()=>{
+ $("start").style.display="none";
+ say("Bismillahirrahmanirrahim. Bismillahirrahmanirrahim. Bismillahirrahmanirrahim.");
+ setTimeout(()=>{
+  message("Tahniah! Anda layak menyertai permainan ini.");
+  say("Tahniah! Anda layak menyertai permainan ini.");
+ },3500);
+});
+
+function resize(){
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
+}
+
+init();
+</script>
+</body>
+</html>
