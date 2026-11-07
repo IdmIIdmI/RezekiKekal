@@ -4,1679 +4,478 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#062638">
-<title>REAL FISHING - MISTERI SUNGAI</title>
-
+<title>ARENA LEGENDS 2D</title>
 <style>
-*{box-sizing:border-box}
-html,body{
- margin:0;width:100%;height:100%;overflow:hidden;
- background:#062638;color:white;font-family:Arial,sans-serif;
-}
-body{touch-action:pan-x pan-y}
-canvas{display:block;position:fixed;inset:0;z-index:0}
-
-#hud{
- position:fixed;top:9px;left:9px;right:9px;
- display:flex;justify-content:space-between;
- z-index:5;pointer-events:none;
-}
-.panel{
- background:#052333dc;border:1px solid #a5e6f5;
- border-radius:12px;padding:8px 11px;
- font-size:12px;line-height:1.6;
-}
-#message{
- position:fixed;top:68px;left:50%;
- transform:translateX(-50%);z-index:5;
- background:#062b3de8;border:1px solid #a4e5f4;
- border-radius:12px;padding:10px 14px;
- text-align:center;font-size:13px;
- width:max-content;max-width:90%;
-}
-#assetInfo{
- position:fixed;top:125px;right:9px;z-index:4;
- background:#052333bb;border-radius:8px;
- padding:6px;font-size:10px;
- max-width:170px;text-align:right;
-}
-#loading{
- position:fixed;bottom:145px;left:50%;
- transform:translateX(-50%);z-index:7;
- background:#062536dd;padding:7px 12px;
- border-radius:10px;font-size:11px;
- max-width:90%;text-align:center;
-}
-#controls{
- position:fixed;bottom:14px;left:0;right:0;
- height:116px;z-index:8;pointer-events:none;
-}
-#stickArea{
- position:absolute;left:14px;bottom:0;
- width:112px;height:112px;
- border:2px solid #ffffff88;border-radius:50%;
- background:#ffffff20;pointer-events:auto;
- touch-action:none;
-}
-#stick{
- position:absolute;left:32px;top:32px;
- width:44px;height:44px;border-radius:50%;
- background:#bceaffdd;box-shadow:0 0 12px #fff;
-}
-.buttons{
- position:absolute;right:12px;bottom:0;
- display:grid;grid-template-columns:repeat(2,68px);
- gap:6px;pointer-events:auto;
-}
-button{
- background:#07516b;border:1px solid #bcecff;
- color:white;border-radius:12px;
- padding:12px 3px;font-size:11px;font-weight:bold;
- cursor:pointer;
-}
-button:active{background:#00a5d0}
-button:disabled{
- opacity:.35;filter:grayscale(1);
-}
-#start,#ritual{
- position:fixed;inset:0;z-index:20;
- display:flex;align-items:center;justify-content:center;
- text-align:center;padding:20px;background:#031b29ed;
-}
-#startBox,#ritualBox{
- width:min(370px,94vw);padding:23px;
- background:#0b3547;border:2px solid #f3d98a;
- border-radius:20px;
-}
-#ritual{display:none;pointer-events:none}
-#ritualBox{pointer-events:auto}
-#arabic{font-size:27px;line-height:1.8;color:#ffe6a0}
-#zikirCount{color:#bcecff}
-#zikirDone{
- width:100%;padding:14px;margin-top:8px;
- background:#087b57;border-color:#a5f5c7;
- font-size:13px;
-}
-#ritualHint{font-size:12px;color:#d9eff5}
-#result{
- display:none;position:fixed;z-index:25;
- top:40%;left:50%;transform:translate(-50%,-50%);
- background:#092e40;border:2px solid #ffe08b;
- border-radius:18px;padding:20px;
- text-align:center;width:270px;
-}
-#errorBox{
- display:none;position:fixed;z-index:50;inset:0;
- background:#160b12f2;padding:25px;
- align-items:center;justify-content:center;text-align:center;
-}
-#errorInner{
- max-width:420px;background:#351c28;
- border:1px solid #ff9a9a;border-radius:16px;padding:20px;
-}
-#errorText{font-size:12px;overflow-wrap:anywhere;color:#ffdada}
-#soundStatus{
- position:fixed;left:10px;bottom:130px;
- font-size:10px;color:#dff7ff;z-index:5;
-}
-@media(max-width:380px){
- .buttons{grid-template-columns:repeat(2,61px)}
- button{padding:10px 2px;font-size:10px}
- #stickArea{width:100px;height:100px;left:10px}
- #stick{left:28px;top:28px}
- #soundStatus{bottom:125px}
-}
+*{box-sizing:border-box;touch-action:none}
+body{margin:0;background:#101b20;color:white;font-family:Arial;overflow:hidden}
+canvas{display:block;width:100vw;height:100dvh;background:#426b45}
+#hud{position:fixed;top:8px;left:0;width:100%;display:flex;justify-content:space-between;padding:0 12px;pointer-events:none;font-size:13px;font-weight:bold;text-shadow:1px 2px 3px #000}
+.panel{background:#10242ddd;border:1px solid #ffffff44;border-radius:10px;padding:8px}
+#heroInfo{min-width:130px}
+#health{height:9px;background:#542c2c;border-radius:9px;margin-top:5px;overflow:hidden}
+#healthFill{height:100%;background:#35e77b;width:100%}
+#controls{position:fixed;bottom:15px;left:0;width:100%;display:flex;justify-content:space-between;align-items:end;padding:0 20px}
+#joy{width:112px;height:112px;border-radius:50%;background:#ffffff20;border:2px solid #ffffff66;position:relative}
+#knob{position:absolute;width:42px;height:42px;border-radius:50%;background:#ffffffaa;left:33px;top:33px}
+.skills{display:flex;gap:9px;align-items:end}
+.skill{width:57px;height:57px;border-radius:50%;border:2px solid #e7c66b;background:#243c55;color:white;font-weight:bold;font-size:12px;box-shadow:0 3px 8px #0008}
+.skill:active{background:#b77b26}
+#attack{width:69px;height:69px;background:#a72d32;border:3px solid #ffc2a0}
+#skill3{width:64px;height:64px;background:#6544a5}
+#heroSelect{position:fixed;inset:0;background:#08131af2;z-index:5;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:15px}
+#heroSelect h1{color:#f6d46b;text-align:center;font-size:27px;margin:5px}
+#heroSelect p{color:#c4d2d9;text-align:center}
+.heroes{display:grid;grid-template-columns:repeat(3,minmax(85px,115px));gap:10px}
+.pick{padding:13px 5px;border:1px solid #718b9b;border-radius:12px;background:#193344;color:white;font-weight:bold}
+.pick span{display:block;font-size:28px;margin-bottom:5px}
+#start{margin-top:18px;padding:14px 45px;background:#d9a83d;color:#18232a;border:0;border-radius:10px;font-weight:bold;font-size:17px}
+#message{position:fixed;top:42%;width:100%;text-align:center;font-size:30px;font-weight:bold;text-shadow:2px 3px 5px black;pointer-events:none}
+#help{position:fixed;top:55px;left:50%;transform:translateX(-50%);font-size:10px;color:#fff9;text-align:center;pointer-events:none}
+@media(orientation:portrait){#help:after{content:" • Pusing telefon ke LANDSKAP untuk pengalaman terbaik"}}
 </style>
 </head>
-
 <body>
 
+<canvas id="game"></canvas>
+
 <div id="hud">
- <div class="panel">
-  🎣 REAL FISHING<br>
-  Skor: <span id="score">0</span>
+ <div class="panel" id="heroInfo">
+  <div id="heroName">HERO</div>
+  <div id="health"><div id="healthFill"></div></div>
+  <div id="stats">LV 1 | GOLD 0</div>
  </div>
- <div class="panel">
-  Tangkapan: <span id="count">0</span><br>
-  Berat: <span id="weight">0.00</span> kg
- </div>
+ <div class="panel" id="score">BLUE 0 - 0 RED</div>
+ <div class="panel" id="timer">00:00</div>
 </div>
 
-<div id="message">Memulakan permainan...</div>
-<div id="assetInfo">MODEL 3D: menunggu</div>
-<div id="loading">Memuatkan dunia sungai...</div>
-<div id="soundStatus">Suara: aktif</div>
+<div id="help">JOYSTICK: GERAK • A: SERANG • B: SKILL • C: DASH • U: ULTIMATE</div>
+<div id="message"></div>
 
 <div id="controls">
- <div id="stickArea"><div id="stick"></div></div>
- <div class="buttons">
-  <button id="cast">🎯 BALING</button>
-  <button id="reel">🌀 KARAU</button>
-  <button id="lift" disabled>⬆ ANGKAT</button>
-  <button id="sound">🔊 SUARA</button>
+ <div id="joy"><div id="knob"></div></div>
+ <div class="skills">
+  <button class="skill" id="skill3">ULT<br>U</button>
+  <button class="skill" id="skill2">DASH<br>C</button>
+  <button class="skill" id="skill1">SKILL<br>B</button>
+  <button class="skill" id="attack">⚔<br>ATK</button>
  </div>
 </div>
 
-<div id="result">
- <h2 id="catchName">Tangkapan</h2>
- <p id="catchWeight"></p>
- <p id="catchScore"></p>
- <button id="continue">TERUSKAN</button>
+<div id="heroSelect">
+ <h1>⚔ ARENA LEGENDS</h1>
+ <p>Pilih wira untuk memasuki arena pertempuran</p>
+ <div class="heroes" id="heroes"></div>
+ <button id="start">MULA BERTEMPUR</button>
+ <p style="font-size:11px">2D MOBA • 3 LANE • AI BATTLE</p>
 </div>
 
-<div id="ritual">
- <div id="ritualBox">
-  <h2>ZIKIR SEBELUM MENGANGKAT</h2>
-  <p>Baca zikir ini sendiri dengan tenang.</p>
-  <div id="arabic"></div>
-  <h3 id="zikirText"></h3>
-  <p id="zikirCount"></p>
-  <p id="ritualHint">Selepas selesai membaca, tekan butang di bawah. Kamu masih boleh mengarau tali.</p>
-  <button id="zikirDone">✓ SELESAI BACA</button>
- </div>
-</div>
+<script>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
 
-<div id="start">
- <div id="startBox">
-  <h1>🎣 REAL FISHING</h1>
-  <h2>MISTERI SUNGAI</h2>
-  <p>Terokai sungai dan cari ikan, udang serta ketam.</p>
-  <p>Baca Bismillahirrahmanirrahim sebanyak tiga kali sebelum bermula.</p>
-  <button id="startBtn">MULA PERMAINAN</button>
- </div>
-</div>
-
-<div id="errorBox">
- <div id="errorInner">
-  <h2>Permainan tidak dapat dimulakan</h2>
-  <p id="errorText"></p>
-  <p>Pastikan internet aktif dan buka semula laman GitHub Pages.</p>
-  <button onclick="location.reload()">CUBA LAGI</button>
- </div>
-</div>
-
-<script type="importmap">
-{
- "imports":{
-  "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
- }
+let W=1000,H=600,scale=1;
+function resize(){
+ canvas.width=innerWidth*devicePixelRatio;
+ canvas.height=innerHeight*devicePixelRatio;
+ W=1000;H=600;
+ scale=Math.min(canvas.width/W,canvas.height/H);
 }
-</script>
+addEventListener("resize",resize);resize();
 
-<script type="module">
-(async function(){
-"use strict";
-
-const $=id=>document.getElementById(id);
-
-function showFatalError(error){
- $("loading").style.display="none";
- $("errorBox").style.display="flex";
- $("errorText").textContent=
-  error && error.message ? error.message : String(error);
- console.error("RALAT PERMAINAN:",error);
-}
-
-window.addEventListener("error",e=>{
- console.error("JavaScript error:",e.message);
-});
-
-window.addEventListener("unhandledrejection",e=>{
- console.error("Promise error:",e.reason);
-});
-
-try{
-
-/* ==================================================
-   1. THREE.JS DAN PEMBOLEH UBAH
-================================================== */
-
-const THREE=await import("three");
-const {GLTFLoader}=await import("three/addons/loaders/GLTFLoader.js");
-
-let scene,camera,renderer,clock,loader;
-let waterMat,rod,floatObj,line;
-let score=0,count=0,totalWeight=0;
-let casted=false,biting=false,reeling=false;
-let biteTimer=0;
-let soundOn=true;
-let yaw=0,pitch=0;
-let joyOn=false,joyX=0,joyY=0;
-let ritualIndex=0;
-let currentCatch=null;
-let hookedObject=null;
-let hookedKind="";
-let karauCount=0;
-let hookProgress=0;
-let biteStarted=false;
-let floatHomeZ=-12;
-let rodBaseRotation=0;
-
-const shrimpModels=[];
-const crabModels=[];
-const fishModels=[];
-const trashModels=[];
-const ripples=[];
-const mixers=[];
-const loadedKinds=[];
-const failedKinds=[];
-
-const zikir=[
- ["الْحَمْدُ لِلَّهِ","Alhamdulillah"],
- ["سُبْحَانَ اللَّهِ","Subhanallah"],
- ["اللَّهُ أَكْبَرُ","Allahu Akbar"],
- ["اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ","Allahumma solli ala Muhammad"]
+const heroes=[
+ {name:"KNIGHT",emoji:"🛡️",hp:180,speed:2.5,damage:18,color:"#54b9ff"},
+ {name:"ASSASSIN",emoji:"🥷",hp:105,speed:4,damage:25,color:"#b18cff"},
+ {name:"TANK",emoji:"⚔️",hp:260,speed:1.8,damage:13,color:"#e4bd67"},
+ {name:"ARCHER",emoji:"🏹",hp:120,speed:2.8,damage:22,color:"#69d68b"},
+ {name:"MAGE",emoji:"🧙",hp:110,speed:2.5,damage:30,color:"#ed82e7"},
+ {name:"WARRIOR",emoji:"🪓",hp:200,speed:2.4,damage:20,color:"#ff9862"}
 ];
-
-function msg(text){
- $("message").textContent=text;
-}
-
-function say(text){
- if(!soundOn||!window.speechSynthesis)return;
- speechSynthesis.cancel();
- const u=new SpeechSynthesisUtterance(text);
- u.lang="ms-MY";
- u.rate=.9;
- u.pitch=1.05;
- speechSynthesis.speak(u);
-}
-
-function vibrate(pattern){
- if(navigator.vibrate){
-  try{navigator.vibrate(pattern)}catch(e){}
- }
-}
-
-function updateHUD(){
- $("score").textContent=score;
- $("count").textContent=count;
- $("weight").textContent=totalWeight.toFixed(2);
-}
-
-function setLiftEnabled(enabled){
- $("lift").disabled=!enabled;
-}
-
-/* ==================================================
-   2. BINA DUNIA
-================================================== */
-
-function init(){
-
- scene=new THREE.Scene();
- scene.background=new THREE.Color(0x91c9d9);
- scene.fog=new THREE.Fog(0x91c9d9,35,95);
-
- camera=new THREE.PerspectiveCamera(
-  65,innerWidth/innerHeight,.1,200
- );
- camera.position.set(0,2.5,8);
- camera.lookAt(0,0,-12);
-
- renderer=new THREE.WebGLRenderer({
-  antialias:false,
-  powerPreference:"high-performance"
- });
-
- renderer.setSize(innerWidth,innerHeight);
- renderer.setPixelRatio(
-  Math.min(window.devicePixelRatio||1,1.25)
- );
- renderer.outputColorSpace=THREE.SRGBColorSpace;
-
- document.body.appendChild(renderer.domElement);
-
- clock=new THREE.Clock();
- loader=new GLTFLoader();
-
- const hemi=new THREE.HemisphereLight(
-  0xe1faff,0x34513a,2
- );
- scene.add(hemi);
-
- const sun=new THREE.DirectionalLight(0xffffff,1.8);
- sun.position.set(-12,20,10);
- scene.add(sun);
-
- makeRiver();
- makeBanks();
- makeTrees();
- makeRocks();
- makeRod();
- makeFloat();
- makeRipples();
-
- scene.add(camera);
-
- window.addEventListener("resize",resize);
- renderer.setAnimationLoop(animate);
-
- msg("Sungai sedia. Tekan MULA PERMAINAN.");
- $("loading").textContent="Dunia sungai sudah dibina.";
-
- loadExternalAssets();
-}
-
-/* ==================================================
-   3. SUNGAI DAN TEPI SUNGAI
-================================================== */
-
-function makeRiver(){
-
- const bed=new THREE.Mesh(
-  new THREE.PlaneGeometry(100,100),
-  new THREE.MeshStandardMaterial({color:0x354c37})
- );
-
- bed.rotation.x=-Math.PI/2;
- bed.position.y=-1.5;
- scene.add(bed);
-
- waterMat=new THREE.MeshStandardMaterial({
-  color:0x087c9d,
-  roughness:.22,
-  metalness:.08,
-  transparent:true,
-  opacity:.96
- });
-
- const water=new THREE.Mesh(
-  new THREE.PlaneGeometry(20,100),
-  waterMat
- );
-
- water.rotation.x=-Math.PI/2;
- water.position.y=-.08;
- scene.add(water);
-
- const shoreMat=new THREE.MeshStandardMaterial({
-  color:0x8b7950
- });
-
- for(const side of [-1,1]){
-  const shore=new THREE.Mesh(
-   new THREE.BoxGeometry(5,.45,100),
-   shoreMat
-  );
-
-  shore.position.set(side*12.5,-.18,-25);
-  scene.add(shore);
- }
-}
-
-function makeBanks(){
-
- const mat=new THREE.MeshStandardMaterial({
-  color:0x426c39
- });
-
- for(const side of [-1,1]){
-  const bank=new THREE.Mesh(
-   new THREE.BoxGeometry(8,2,100),
-   mat
-  );
-
-  bank.position.set(side*18,.2,-25);
-  scene.add(bank);
- }
-}
-
-function makeTrees(){
-
- const trunkMat=new THREE.MeshStandardMaterial({
-  color:0x60402b
- });
-
- const leafMat=new THREE.MeshStandardMaterial({
-  color:0x176637
- });
-
- for(const side of [-1,1]){
-  for(let i=0;i<19;i++){
-
-   const x=side*(14+Math.random()*5);
-   const z=-i*4+5;
-
-   const trunk=new THREE.Mesh(
-    new THREE.CylinderGeometry(.15,.28,3,8),
-    trunkMat
-   );
-
-   trunk.position.set(x,1.4,z);
-   scene.add(trunk);
-
-   const leaves=new THREE.Mesh(
-    new THREE.SphereGeometry(1.3,10,9),
-    leafMat
-   );
-
-   leaves.scale.set(1.2,1.4,1.1);
-   leaves.position.set(x,3.5,z);
-   scene.add(leaves);
-  }
- }
-}
-
-function makeRocks(){
-
- const rockMat=new THREE.MeshStandardMaterial({
-  color:0x777b70,roughness:1
- });
-
- for(let side of [-1,1]){
-  for(let i=0;i<15;i++){
-
-   const rock=new THREE.Mesh(
-    new THREE.DodecahedronGeometry(
-     .35+Math.random()*.5,1
-    ),
-    rockMat
-   );
-
-   rock.position.set(
-    side*(10.5+Math.random()*2),
-    -.1+Math.random()*.1,
-    -Math.random()*65
-   );
-
-   rock.rotation.set(
-    Math.random(),Math.random(),Math.random()
-   );
-
-   scene.add(rock);
-  }
- }
-}
-
-/* ==================================================
-   4. RIAK AIR
-================================================== */
-
-function makeRipples(){
-
- for(let i=0;i<32;i++){
-
-  const ripple=new THREE.Mesh(
-   new THREE.RingGeometry(.1,.16,24),
-   new THREE.MeshBasicMaterial({
-    color:0xc8f7ff,
-    transparent:true,
-    opacity:.3,
-    side:THREE.DoubleSide
-   })
-  );
-
-  ripple.rotation.x=-Math.PI/2;
-
-  ripple.position.set(
-   (Math.random()-.5)*17,
-   -.045,
-   -Math.random()*50
-  );
-
-  ripple.userData.phase=Math.random()*5;
-
-  scene.add(ripple);
-  ripples.push(ripple);
- }
-}
-
-/* ==================================================
-   5. JORAN DAN KEKILI
-================================================== */
-
-function makeRod(){
-
- const group=new THREE.Group();
-
- group.position.set(.65,-.65,-1.1);
- camera.add(group);
-
- const carbon=new THREE.MeshStandardMaterial({
-  color:0x202a32,
-  metalness:.7,
-  roughness:.25
- });
-
- const gripMat=new THREE.MeshStandardMaterial({
-  color:0x98643a
- });
-
- const metal=new THREE.MeshStandardMaterial({
-  color:0xc8d2d6,
-  metalness:.85,
-  roughness:.2
- });
-
- const shaft=new THREE.Mesh(
-  new THREE.CylinderGeometry(.025,.055,4,12),
-  carbon
- );
-
- shaft.rotation.x=-Math.PI/2;
- shaft.rotation.z=-.15;
- shaft.position.set(0,0,-1.5);
- group.add(shaft);
-
- const grip=new THREE.Mesh(
-  new THREE.CylinderGeometry(.075,.09,.65,12),
-  gripMat
- );
-
- grip.rotation.x=-Math.PI/2;
- grip.position.set(0,-.03,-.1);
- group.add(grip);
-
- const reelBody=new THREE.Mesh(
-  new THREE.CylinderGeometry(.19,.19,.12,20),
-  metal
- );
-
- reelBody.rotation.x=Math.PI/2;
- reelBody.position.set(0,-.2,-.65);
- group.add(reelBody);
-
- const spool=new THREE.Mesh(
-  new THREE.CylinderGeometry(.11,.11,.16,20),
-  carbon
- );
-
- spool.rotation.x=Math.PI/2;
- spool.position.set(0,-.2,-.65);
- group.add(spool);
-
- const handleArm=new THREE.Mesh(
-  new THREE.BoxGeometry(.05,.32,.05),
-  metal
- );
-
- handleArm.position.set(.22,-.34,-.65);
- group.add(handleArm);
-
- const handleKnob=new THREE.Mesh(
-  new THREE.SphereGeometry(.07,12,10),
-  gripMat
- );
-
- handleKnob.position.set(.22,-.51,-.65);
- group.add(handleKnob);
-
- for(let i=0;i<9;i++){
-
-  const ring=new THREE.Mesh(
-   new THREE.TorusGeometry(.06-i*.003,.012,6,12),
-   metal
-  );
-
-  ring.position.set(0,.01,-.45-i*.39);
-  group.add(ring);
- }
-
- rod=group;
-
- const points=[];
-
- for(let i=0;i<18;i++){
-  points.push(new THREE.Vector3(0,0,-i*.24));
- }
-
- const geo=new THREE.BufferGeometry().setFromPoints(points);
-
- line=new THREE.Line(
-  geo,
-  new THREE.LineBasicMaterial({color:0xf0ffff})
- );
-
- group.add(line);
-}
-
-/* ==================================================
-   6. PELAMPUNG
-================================================== */
-
-function makeFloat(){
-
- const g=new THREE.Group();
-
- const red=new THREE.Mesh(
-  new THREE.SphereGeometry(.075,12,10),
-  new THREE.MeshStandardMaterial({color:0xff2929})
- );
-
- red.scale.y=1.8;
- g.add(red);
-
- const white=new THREE.Mesh(
-  new THREE.SphereGeometry(.07,12,10),
-  new THREE.MeshStandardMaterial({color:0xffffff})
- );
-
- white.position.y=-.12;
- g.add(white);
-
- const black=new THREE.Mesh(
-  new THREE.SphereGeometry(.025,8,8),
-  new THREE.MeshStandardMaterial({color:0x171717})
- );
-
- black.position.y=.13;
- g.add(black);
-
- g.position.set(0,.05,floatHomeZ);
- scene.add(g);
-
- floatObj=g;
-}
-
-/* ==================================================
-   7. MUATKAN MODEL LUARAN
-================================================== */
-
-async function loadExternalAssets(){
-
- msg("Memuatkan model 3D haiwan dan sampah...");
-
- const jobs=[
-  loadGLB(
-   "https://polyfork.dev/cdn/mantis-shrimp-base.glb",
-   "shrimp"
-  ),
-  searchAndLoad("freshwater fish","animals","fish"),
-  searchAndLoad("crab","animals","crab"),
-  searchAndLoad("plastic bottle","props","bottle"),
-  searchAndLoad("metal can","props","can")
- ];
-
- await Promise.allSettled(jobs);
-
- $("loading").style.display="none";
-
- $("assetInfo").textContent=
-  "Berjaya: "+
-  (loadedKinds.join(", ")||"tiada")+
-  " | Gagal: "+
-  (failedKinds.join(", ")||"tiada");
-
- if(loadedKinds.length){
-  msg("Dunia sungai sedia. Model 3D telah dimuatkan.");
- }else{
-  msg("Dunia sungai sedia. Model tambahan tidak tersedia.");
- }
-}
-
-/* ==================================================
-   8. CARI ASET DARIPADA API
-================================================== */
-
-async function searchAndLoad(query,category,kind){
-
- try{
-
-  const url=
-   "https://3dassets.dev/api/v1/assets?q="+
-   encodeURIComponent(query)+
-   "&category="+encodeURIComponent(category)+
-   "&limit=40&sort=relevance";
-
-  const response=await fetch(url);
-
-  if(!response.ok){
-   throw new Error("API katalog tidak tersedia");
-  }
-
-  const data=await response.json();
-  const assets=collectAssets(data);
-  const match=chooseAsset(assets,query,kind);
-
-  if(!match){
-   throw new Error("Model "+kind+" tidak ditemui");
-  }
-
-  return await loadGLB(match.cdnUrl,kind);
-
- }catch(error){
-
-  console.warn("Carian "+kind+" gagal:",error);
-  if(!failedKinds.includes(kind))failedKinds.push(kind);
-  return false;
- }
-}
-
-/* ==================================================
-   9. BACA HASIL API
-================================================== */
-
-function collectAssets(data){
-
- const found=[];
- const seen=new Set();
-
- function walk(value){
-
-  if(!value||typeof value!=="object")return;
-
-  if(Array.isArray(value)){
-   value.forEach(walk);
-   return;
-  }
-
-  const url=
-   value.cdnUrl||
-   value.cdn_url||
-   value.modelUrl||
-   value.model_url||
-   value.url;
-
-  const name=
-   value.name||
-   value.title||
-   value.slug||
-   value.label||
-   "";
-
-  if(
-   typeof url==="string"&&
-   /\.glb(?:\?|$)/i.test(url)&&
-   !seen.has(url)
-  ){
-
-   seen.add(url);
-
-   found.push({
-    name:String(name).toLowerCase(),
-    cdnUrl:url
-   });
-  }
-
-  Object.values(value).forEach(v=>{
-   if(v&&typeof v==="object")walk(v);
-  });
- }
-
- walk(data);
- return found;
-}
-
-/* ==================================================
-   10. PILIH MODEL YANG SESUAI
-================================================== */
-
-function chooseAsset(assets,query,kind){
-
- const q=query.toLowerCase();
-
- let candidates=assets.filter(asset=>{
-
-  const name=asset.name;
-
-  if(kind==="fish"){
-   return (
-    name.includes("fish")||
-    name.includes("carp")||
-    name.includes("tilapia")||
-    name.includes("catfish")
-   );
-  }
-
-  if(kind==="crab"){
-   return name.includes("crab");
-  }
-
-  if(kind==="bottle"){
-   return (
-    name.includes("bottle")||
-    name.includes("plastic")||
-    name.includes("pet")
-   );
-  }
-
-  if(kind==="can"){
-   return (
-    name.includes("can")||
-    name.includes("tin")||
-    name.includes("metal")
-   );
-  }
-
-  return name.includes(q);
- });
-
- if(!candidates.length)return null;
-
- candidates.sort((a,b)=>{
-
-  const as=a.name.includes(q)?0:1;
-  const bs=b.name.includes(q)?0:1;
-
-  return as-bs;
- });
-
- return candidates[0];
-}
-
-/* ==================================================
-   11. LOAD FAIL-SAFE GLB
-================================================== */
-
-function loadGLB(url,kind){
-
- return new Promise(resolve=>{
-
-  loader.load(
-   url,
-
-   gltf=>{
-
-    try{
-
-     placeLoadedModel(gltf,kind);
-     if(!loadedKinds.includes(kind))loadedKinds.push(kind);
-     resolve(true);
-
-    }catch(error){
-
-     console.error("Ralat model "+kind,error);
-     if(!failedKinds.includes(kind))failedKinds.push(kind);
-     resolve(false);
-    }
-   },
-
-   undefined,
-
-   error=>{
-
-    console.warn("GLB gagal dimuatkan:",kind,error);
-    if(!failedKinds.includes(kind))failedKinds.push(kind);
-    resolve(false);
-   }
-  );
- });
-}
-
-/* ==================================================
-   12. SUSUN MODEL KE DUNIA
-================================================== */
-
-function placeLoadedModel(gltf,kind){
-
- const original=gltf.scene;
-
- original.traverse(obj=>{
-
-  if(obj.isMesh){
-
-   obj.castShadow=false;
-   obj.receiveShadow=false;
-
-   if(obj.material){
-    obj.material.roughness=Math.max(
-     .35,obj.material.roughness||.5
-    );
-   }
-  }
- });
-
- const box=new THREE.Box3().setFromObject(original);
- const size=new THREE.Vector3();
- box.getSize(size);
-
- const max=Math.max(size.x,size.y,size.z)||1;
-
- const targetSize={
-  fish:1.1,
-  shrimp:.55,
-  crab:.85,
-  bottle:.55,
-  can:.35
- }[kind]||.5;
-
- original.scale.setScalar(targetSize/max);
-
- if(kind==="shrimp"){
-
-  for(let i=0;i<3;i++){
-
-   const model=original.clone(true);
-
-   model.position.set(-3+i*3,-.35,-7-i*2);
-   model.rotation.y=Math.PI/2;
-   model.userData.phase=Math.random()*6;
-   model.userData.home=model.position.clone();
-
-   scene.add(model);
-   shrimpModels.push(model);
-  }
-
-  if(gltf.animations&&gltf.animations.length){
-
-   const animated=original.clone(true);
-   const mixer=new THREE.AnimationMixer(animated);
-
-   gltf.animations.forEach(clip=>{
-    mixer.clipAction(clip).play();
-   });
-
-   animated.position.set(-3,-.35,-7);
-   animated.userData.phase=Math.random()*6;
-   animated.userData.home=animated.position.clone();
-
-   scene.add(animated);
-   mixers.push(mixer);
-   shrimpModels.push(animated);
-  }
- }
-
- if(kind==="fish"){
-
-  for(let i=0;i<4;i++){
-
-   const model=original.clone(true);
-
-   model.position.set(-5+i*3.2,-.55,-10-i*5);
-   model.rotation.y=Math.PI/2;
-   model.userData.phase=Math.random()*6;
-   model.userData.home=model.position.clone();
-
-   scene.add(model);
-   fishModels.push(model);
-  }
- }
-
- if(kind==="crab"){
-
-  for(let i=0;i<3;i++){
-
-   const model=original.clone(true);
-
-   model.position.set(
-    i===0?-5:i===1?5:0,
-    -.05,
-    -7-i*4
-   );
-
-   model.userData.phase=Math.random()*6;
-   model.userData.home=model.position.clone();
-
-   scene.add(model);
-   crabModels.push(model);
-  }
- }
-
- if(kind==="bottle"||kind==="can"){
-
-  for(let i=0;i<3;i++){
-
-   const model=original.clone(true);
-
-   model.position.set(-4+i*4,.02,-8-i*5);
-   model.rotation.set(
-    Math.random()*.2,
-    Math.random()*6,
-    Math.random()*.3
-   );
-
-   model.userData.phase=Math.random()*6;
-   model.userData.home=model.position.clone();
-   model.userData.kind=kind;
-
-   scene.add(model);
-   trashModels.push(model);
-  }
- }
-}
-
-/* ==================================================
-   13. JOYSTICK
-================================================== */
-
-const area=$("stickArea");
-const stick=$("stick");
-
-function joyMove(e){
-
- if(!joyOn)return;
-
- const rect=area.getBoundingClientRect();
-
- let x=e.clientX-rect.left-rect.width/2;
- let y=e.clientY-rect.top-rect.height/2;
-
- const max=30;
- const distance=Math.hypot(x,y);
-
- if(distance>max){
-  x=x/distance*max;
-  y=y/distance*max;
- }
-
- joyX=x/max;
- joyY=y/max;
-
- const center=(area.clientWidth-44)/2;
-
- stick.style.left=(center+x)+"px";
- stick.style.top=(center+y)+"px";
-}
-
-function joyEnd(){
-
- joyOn=false;
- joyX=0;
- joyY=0;
-
- const center=(area.clientWidth-44)/2;
-
- stick.style.left=center+"px";
- stick.style.top=center+"px";
-}
-
-area.addEventListener("pointerdown",e=>{
- area.setPointerCapture(e.pointerId);
- joyOn=true;
- joyMove(e);
+let chosen=0,started=false,ended=false;
+let player,enemies=[],minions=[],towers=[],projectiles=[];
+let kills=0,gold=0,level=1,elapsed=0,lastSpawn=0,lastTime=0;
+let joy={x:0,y:0,active:false};
+let keys={};
+let cooldown={b:0,c:0,u:0,a:0};
+
+const lanes=[150,300,450];
+
+document.getElementById("heroes").innerHTML=heroes.map((h,i)=>
+ `<button class="pick" data-i="${i}"><span>${h.emoji}</span>${h.name}</button>`
+).join("");
+
+document.querySelectorAll(".pick").forEach(b=>{
+ b.onclick=()=>{
+  chosen=+b.dataset.i;
+  document.querySelectorAll(".pick").forEach(x=>x.style.borderColor="#718b9b");
+  b.style.borderColor="#ffd45d";
+ };
 });
+document.querySelector(".pick").style.borderColor="#ffd45d";
 
-area.addEventListener("pointermove",joyMove);
-area.addEventListener("pointerup",joyEnd);
-area.addEventListener("pointercancel",joyEnd);
-
-/* ==================================================
-   14. PILIH OBJEK SEBENAR UNTUK DIPANCING
-================================================== */
-
-function chooseVisibleTarget(){
-
- const choices=[];
-
- fishModels.forEach(m=>choices.push({model:m,kind:"fish"}));
- shrimpModels.forEach(m=>choices.push({model:m,kind:"shrimp"}));
- crabModels.forEach(m=>choices.push({model:m,kind:"crab"}));
- trashModels.forEach(m=>choices.push({
-  model:m,
-  kind:m.userData.kind==="can"?"can":"bottle"
- }));
-
- if(!choices.length)return null;
-
- return choices[Math.floor(Math.random()*choices.length)];
-}
-
-function catchData(kind){
-
- if(kind==="fish"){
-  const names=[
-   "Ikan Lampam","Ikan Patin","Ikan Tilapia",
-   "Ikan Baung","Ikan Keli","Ikan Haruan"
-  ];
-
-  return {
-   name:names[Math.floor(Math.random()*names.length)],
-   weight:.3+Math.random()*3,
-   points:20,
-   type:"ikan"
-  };
- }
-
- if(kind==="shrimp"){
-  return {
-   name:"Udang Galah",
-   weight:.05+Math.random()*.4,
-   points:35,
-   type:"udang"
-  };
- }
-
- if(kind==="crab"){
-  return {
-   name:"Ketam Sungai",
-   weight:.1+Math.random()*.5,
-   points:30,
-   type:"ketam"
-  };
- }
-
- if(kind==="can"){
-  return {
-   name:"Tin Minuman",
-   weight:.1+Math.random()*.8,
-   points:-5,
-   type:"sampah"
-  };
- }
-
+function makeHero(team,type,x,y){
+ let h=heroes[type];
  return {
-  name:"Botol Plastik",
-  weight:.1+Math.random()*.8,
-  points:-5,
-  type:"sampah"
+  team,type,x,y,hp:h.hp,maxHp:h.hp,speed:h.speed,
+  damage:h.damage,range:115,alive:true,level:1,
+  attackTimer:0,respawn:0,flash:0
  };
 }
 
-function startBite(){
+function startGame(){
+ player=makeHero(0,chosen,100,300);
+ enemies=[makeHero(1,1,880,300)];
+ enemies[0].ai=true;
+ towers=[];
+ for(let lane of lanes){
+  towers.push({team:0,x:235,y:lane,hp:260,max:260,lane});
+  towers.push({team:1,x:765,y:lane,hp:260,max:260,lane});
+ }
+ minions=[];projectiles=[];
+ kills=0;gold=0;level=1;elapsed=0;
+ started=true;ended=false;
+ document.getElementById("heroSelect").style.display="none";
+ document.getElementById("message").textContent="";
+ lastTime=performance.now();
+}
 
- if(biting)return;
+document.getElementById("start").onclick=startGame;
 
- biting=true;
- reeling=false;
- biteStarted=true;
- karauCount=0;
- hookProgress=0;
+function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function nearest(x,team,range){
+ let all=[...minions,...enemies,...(player?[player]:[]) ,...towers];
+ return all.filter(o=>o!==x&&o.team!==team&&o.hp>0&&distance(x,o)<range)
+ .sort((a,b)=>distance(x,a)-distance(x,b))[0];
+}
+function damage(target,n,team){
+ if(!target||target.hp<=0)return;
+ target.hp-=n;
+ target.flash=.12;
+ if(target.hp<=0){
+  target.hp=0;
+  if(target.team===1&&team===0){
+   kills++;gold+=35;
+   if(gold>=100){gold-=100;level++;player.maxHp+=12;player.hp=Math.min(player.maxHp,player.hp+25);player.damage+=3;}
+  }
+  if(target===player){
+   player.alive=false;player.respawn=3;
+  }
+ }
+}
 
- const target=chooseVisibleTarget();
+function spawnMinions(){
+ for(let lane of lanes){
+  for(let team=0;team<2;team++){
+   minions.push({
+    team,x:team===0?100:900,y:lane+(Math.random()*16-8),
+    hp:65,maxHp:65,damage:7,speed:0.7,attackTimer:0,lane
+   });
+  }
+ }
+}
 
- if(target){
-  hookedObject=target.model;
-  hookedKind=target.kind;
-  currentCatch=catchData(target.kind);
-  hookedObject.userData.hooked=true;
-  hookedObject.userData.hookHome=hookedObject.position.clone();
+function moveToward(o,target,speed){
+ let dx=target.x-o.x,dy=target.y-o.y;
+ let d=Math.hypot(dx,dy)||1;
+ o.x+=dx/d*speed;o.y+=dy/d*speed;
+}
+
+function fire(x,y,target,team,damageAmount,speed=5){
+ if(!target)return;
+ let d=distance({x,y},target)||1;
+ projectiles.push({
+  x,y,vx:(target.x-x)/d*speed,
+  vy:(target.y-y)/d*speed,target,team,damage:damageAmount,life:1
+ });
+}
+
+function update(dt){
+ if(!started||ended)return;
+ elapsed+=dt;
+ cooldown.b=Math.max(0,cooldown.b-dt);
+ cooldown.c=Math.max(0,cooldown.c-dt);
+ cooldown.u=Math.max(0,cooldown.u-dt);
+ cooldown.a=Math.max(0,cooldown.a-dt);
+
+ if(elapsed-lastSpawn>8){spawnMinions();lastSpawn=elapsed;}
+
+ if(player.alive){
+  let dx=joy.x,dy=joy.y;
+  if(keys.ArrowLeft||keys.a)dx-=1;
+  if(keys.ArrowRight||keys.d)dx+=1;
+  if(keys.ArrowUp||keys.w)dy-=1;
+  if(keys.ArrowDown||keys.s)dy+=1;
+  let len=Math.hypot(dx,dy);
+  if(len>1){dx/=len;dy/=len;}
+  player.x=clamp(player.x+dx*player.speed*dt*60,20,980);
+  player.y=clamp(player.y+dy*player.speed*dt*60,80,520);
+
+  player.attackTimer-=dt;
+  if(player.attackTimer<=0){
+   let target=nearest(player,0,player.range);
+   if(target){
+    fire(player.x,player.y,target,0,player.damage);
+    player.attackTimer=.65;
+   }
+  }
  }else{
-  hookedObject=null;
-  hookedKind="fish";
-  currentCatch=catchData("fish");
- }
-
- vibrate([350,120,350,120,500]);
-
- msg("🐟 IKAN MAKAN UMPAN! CEPAT KARAU!");
- say("Ikan makan umpan! Cepat karau!");
-
- $("lift").disabled=true;
-}
-
-/* ==================================================
-   15. SISTEM MEMANCING
-================================================== */
-
-function cast(){
-
- if(casted){
-  msg("Umpan sudah berada di dalam air.");
-  return;
- }
-
- casted=true;
- biting=false;
- reeling=false;
- biteStarted=false;
- hookedObject=null;
- hookedKind="";
- currentCatch=null;
- karauCount=0;
- hookProgress=0;
- ritualIndex=0;
-
- setLiftEnabled(false);
-
- biteTimer=5+Math.random()*7;
-
- floatObj.position.set(0,.05,floatHomeZ);
-
- msg("Umpan dilontarkan. Tunggu ikan menyambar...");
- say("Umpan sudah dilontarkan. Tunggu ikan memakan umpan.");
-}
-
-function reel(){
-
- if(!casted){
-  msg("Baling umpan dahulu.");
-  return;
- }
-
- if(!biting){
-  msg("Belum ada tarikan. Tunggu ikan makan umpan.");
-  return;
- }
-
- reeling=true;
- karauCount++;
- hookProgress=Math.min(1,hookProgress+.075);
-
- if(hookedObject){
-  const home=hookedObject.userData.hookHome;
-  if(home){
-   const targetZ=home.z+(floatHomeZ-home.z)*hookProgress*.55;
-   hookedObject.position.z=THREE.MathUtils.lerp(
-    hookedObject.position.z,targetZ,.22
-   );
+  player.respawn-=dt;
+  if(player.respawn<=0){
+   player.alive=true;player.hp=player.maxHp;
+   player.x=100;player.y=300;
   }
  }
 
- if(ritualIndex>0){
-  msg("Teruskan mengarau! Ikan semakin hampir.");
- }else{
-  msg("Ikan sedang melawan! Teruskan mengarau!");
- }
-
- vibrate(35);
-}
-
-/* ==================================================
-   16. ZIKIR SEBELUM MENGANGKAT
-================================================== */
-
-function lift(){
-
- if(!casted){
-  msg("Baling umpan dahulu.");
-  return;
- }
-
- if(!biting){
-  msg("Belum ada tarikan. Tunggu dahulu.");
-  return;
- }
-
- if(ritualIndex>=4){
-  finishCatch();
-  return;
- }
-
- $("ritual").style.display="flex";
- showZikir();
-}
-
-function showZikir(){
-
- const z=zikir[ritualIndex];
-
- $("arabic").textContent=z[0];
- $("zikirText").textContent=z[1];
- $("zikirCount").textContent=(ritualIndex+1)+" / 4";
-
- $("zikirDone").textContent="✓ SELESAI BACA";
-}
-
-function completeZikir(){
-
- if($("ritual").style.display!=="flex")return;
-
- ritualIndex++;
-
- if(hookedObject){
-  const home=hookedObject.userData.hookHome;
-  if(home){
-   hookProgress=Math.min(1,hookProgress+.1);
-   hookedObject.position.z=THREE.MathUtils.lerp(
-    hookedObject.position.z,
-    home.z+(floatHomeZ-home.z)*hookProgress*.55,
-    .5
-   );
+ // AI HERO
+ enemies.forEach(e=>{
+  if(e.hp<=0){
+   e.respawn=(e.respawn||0)+dt;
+   if(e.respawn>4){e.hp=e.maxHp;e.x=880;e.y=300;e.respawn=0;}
+   return;
   }
- }
-
- if(ritualIndex<4){
-
-  showZikir();
-
- }else{
-
-  $("ritual").style.display="none";
-  setLiftEnabled(true);
-  msg("Alhamdulillah. Empat zikir selesai. Tekan ANGKAT!");
-  say("Empat zikir selesai. Anda boleh mengangkat hasil pancingan.");
- }
-}
-
-/* ==================================================
-   17. SELESAIKAN TANGKAPAN
-================================================== */
-
-function finishCatch(){
-
- if(!currentCatch){
-  currentCatch=catchData("fish");
- }
-
- const c=currentCatch;
-
- score+=c.points;
- count++;
- totalWeight+=c.weight;
-
- updateHUD();
-
- $("catchName").textContent=c.name;
- $("catchWeight").textContent=
-  "Berat: "+c.weight.toFixed(2)+" kg";
-
- $("catchScore").textContent=
-  c.points<0
-   ?"Mata: "+c.points+" (Sampah perlu dibuang dengan betul)"
-   :"Mata: +"+c.points;
-
- $("result").style.display="block";
-
- msg(
-  c.type==="sampah"
-   ?"Anda mengutip sampah sungai. Terima kasih menjaga alam!"
-   :"Tahniah! Anda mendapat "+c.name
- );
-
- say(
-  c.type==="sampah"
-   ?"Anda mendapat sampah. Jagalah kebersihan sungai."
-   :"Tahniah. Anda mendapat "+c.name
- );
-
- if(hookedObject){
-  hookedObject.userData.hooked=false;
-  hookedObject.visible=false;
- }
-
- casted=false;
- biting=false;
- reeling=false;
- biteStarted=false;
- hookedObject=null;
- hookedKind="";
- currentCatch=null;
- ritualIndex=0;
- karauCount=0;
- hookProgress=0;
-
- setLiftEnabled(false);
-
- floatObj.position.set(0,.05,floatHomeZ);
- rod.rotation.x=0;
-}
-
-function closeResult(){
-
- $("result").style.display="none";
- msg("Baling umpan untuk tangkapan seterusnya.");
-}
-
-/* ==================================================
-   18. ANIMASI DUNIA
-================================================== */
-
-function animate(){
-
- if(!renderer||!scene)return;
-
- const dt=Math.min(clock.getDelta(),.04);
- const t=clock.elapsedTime;
-
- /* Pandangan joystick */
-
- if(joyOn){
-
-  yaw-=joyX*.018;
-  pitch-=joyY*.009;
-
-  pitch=THREE.MathUtils.clamp(pitch,-.3,.3);
-
-  camera.rotation.order="YXZ";
-  camera.rotation.y=yaw;
-  camera.rotation.x=pitch;
- }
-
- /* Gigitan ikan */
-
- if(casted&&!biting){
-
-  biteTimer-=dt;
-
-  if(biteTimer<=0){
-   startBite();
+  let target=player.alive?player:minions.find(m=>m.team===0);
+  if(target&&distance(e,target)>95)moveToward(e,target,e.speed*dt*60);
+  e.attackTimer-=dt;
+  if(target&&distance(e,target)<130&&e.attackTimer<=0){
+   fire(e.x,e.y,target,1,e.damage);
+   e.attackTimer=1;
   }
- }
+ });
 
- /* Pergerakan pelampung dan joran */
-
- if(biting){
-
-  const fight=Math.sin(t*13)*.12;
-
-  floatObj.position.y=
-   -.23+fight;
-
-  floatObj.position.x=
-   Math.sin(t*8)*.09;
-
-  if(reeling){
-   floatObj.position.z+=dt*.12;
-   rod.rotation.x=.22+Math.sin(t*9)*.1;
-   rod.rotation.z=Math.sin(t*7)*.07;
+ // MINIONS
+ minions.forEach(m=>{
+  if(m.hp<=0)return;
+  let target=nearest(m,m.team,45);
+  if(target){
+   m.attackTimer-=dt;
+   if(m.attackTimer<=0){
+    damage(target,m.damage,m.team);
+    m.attackTimer=1;
+   }
   }else{
-   rod.rotation.x=.1+Math.sin(t*5)*.06;
-   rod.rotation.z=Math.sin(t*4)*.025;
-  }
-
- }else{
-
-  floatObj.position.y=.05+Math.sin(t*2)*.025;
-  floatObj.position.x=0;
-  rod.rotation.x=Math.sin(t)*.015;
-  rod.rotation.z=0;
- }
-
- /* Gerakan objek yang sedang terkena mata kail */
-
- if(hookedObject&&biting){
-
-  const home=hookedObject.userData.hookHome;
-
-  if(home){
-
-   const fightX=Math.sin(t*7)*.45;
-   const fightZ=Math.cos(t*5)*.35;
-
-   if(reeling){
-    hookedObject.position.x=THREE.MathUtils.lerp(
-     hookedObject.position.x,
-     fightX,.035
-    );
-
-    hookedObject.position.z=THREE.MathUtils.lerp(
-     hookedObject.position.z,
-     home.z+(floatHomeZ-home.z)*hookProgress*.55+fightZ,
-     .045
-    );
+   let direction=m.team===0?1:-1;
+   let tower=towers.find(t=>t.team!==m.team&&t.hp>0&&Math.abs(t.y-m.lane)<30&&Math.abs(t.x-m.x)<100);
+   let baseX=m.team===0?940:60;
+   if(tower){
+    if(Math.abs(tower.x-m.x)>28)m.x+=direction*m.speed*dt*60;
+    else {m.attackTimer-=dt;if(m.attackTimer<=0){damage(tower,m.damage,m.team);m.attackTimer=1;}}
    }else{
-    hookedObject.position.x=home.x+Math.sin(t*2)*.2;
-    hookedObject.position.z=home.z+Math.cos(t*2)*.12;
-   }
-
-   if(hookedKind==="fish"){
-    hookedObject.rotation.y=
-     Math.PI/2+Math.sin(t*12)*.45;
-   }else{
-    hookedObject.rotation.y+=Math.sin(t*8)*.012;
+    let tx=baseX;
+    if(Math.abs(tx-m.x)>20)m.x+=direction*m.speed*dt*60;
    }
   }
+ });
+
+ // TOWERS
+ towers.forEach(t=>{
+  if(t.hp<=0)return;
+  t.timer=(t.timer||0)-dt;
+  let target=[...minions,...enemies,...(player?[player]:[])]
+   .filter(o=>o.hp>0&&o.team!==t.team&&distance(t,o)<155)
+   .sort((a,b)=>distance(t,a)-distance(t,b))[0];
+  if(target&&t.timer<=0){
+   fire(t.x,t.y,target,t.team,15,7);
+   t.timer=1.2;
+  }
+ });
+
+ // PROJECTILES
+ projectiles.forEach(p=>{
+  if(!p.target||p.target.hp<=0){p.life=0;return;}
+  p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;
+  p.life-=dt;
+  if(distance(p,p.target)<15){
+   damage(p.target,p.damage,p.team);p.life=0;
+  }
+ });
+ projectiles=projectiles.filter(p=>p.life>0);
+ minions=minions.filter(m=>m.hp>0&&m.x>-30&&m.x<1030);
+
+ // BASES
+ let blueTower=towers.filter(t=>t.team===0).every(t=>t.hp<=0);
+ let redTower=towers.filter(t=>t.team===1).every(t=>t.hp<=0);
+ if(blueTower&&redTower===false&&minions.some(m=>m.team===0&&m.x>900)){
+  // Base remains protected until towers are destroyed
+ }
+ if(towers.filter(t=>t.team===1).every(t=>t.hp<=0)){
+  let m=minions.find(m=>m.team===0&&m.x>920);
+  if(m){endGame("BLUE MENANG!");return;}
+ }
+ if(towers.filter(t=>t.team===0).every(t=>t.hp<=0)){
+  let m=minions.find(m=>m.team===1&&m.x<80);
+  if(m){endGame("RED MENANG!");return;}
  }
 
- /* Tali pancing */
-
- if(line){
-
-  const a=line.geometry.attributes.position;
-
-  for(let i=0;i<a.count;i++){
-
-   const f=i/(a.count-1);
-
-   const tug=biting?Math.sin(t*12)*f*.12:0;
-
-   a.setXYZ(
-    i,
-    Math.sin(t+f*2)*.02+tug,
-    -f*.1-(biting?f*f*.2:0),
-    -f*3.7
-   );
-  }
-
-  a.needsUpdate=true;
- }
-
- /* Udang bergerak */
-
- shrimpModels.forEach(s=>{
-
-  if(s.userData.hooked)return;
-
-  const p=s.userData.phase||0;
-  const home=s.userData.home;
-
-  if(home){
-   s.position.x=home.x+Math.sin(t*1.5+p)*.22;
-   s.position.y=home.y+Math.sin(t*5+p)*.025;
-   s.position.z=home.z+Math.cos(t*1.1+p)*.15;
-  }
-
-  s.rotation.y=Math.PI/2+Math.sin(t*1.5+p)*.15;
- });
-
- /* Ikan berenang kiri dan kanan */
-
- fishModels.forEach(f=>{
-
-  if(f.userData.hooked)return;
-
-  const p=f.userData.phase||0;
-  const home=f.userData.home;
-
-  if(home){
-   f.position.x=home.x+Math.sin(t*.8+p)*1.1;
-   f.position.z=home.z+Math.cos(t*.5+p)*.45;
-  }
-
-  f.rotation.y=
-   Math.PI/2+Math.sin(t+p)*.28;
- });
-
- /* Ketam bergerak */
-
- crabModels.forEach(c=>{
-
-  if(c.userData.hooked)return;
-
-  const p=c.userData.phase||0;
-  const home=c.userData.home;
-
-  if(home){
-   c.position.x=home.x+Math.sin(t*.8+p)*.35;
-   c.position.z=home.z+Math.cos(t*.7+p)*.15;
-  }
-
-  c.rotation.y=Math.sin(t*1.5+p)*.12;
- });
-
- /* Sampah terapung */
-
- trashModels.forEach(o=>{
-
-  if(o.userData.hooked)return;
-
-  const p=o.userData.phase||0;
-  const home=o.userData.home;
-
-  if(home){
-   o.position.x=home.x+Math.sin(t*.4+p)*.2;
-   o.position.z=home.z+Math.sin(t*.3+p)*.18;
-  }
-
-  o.position.y=.02+Math.sin(t*1.4+p)*.035;
-  o.rotation.z=Math.sin(t*.8+p)*.025;
- });
-
- /* Riak air */
-
- ripples.forEach(r=>{
-
-  const s=1+((t+r.userData.phase)%4)*.3;
-
-  r.scale.set(s,s,s);
-  r.material.opacity=.3-(s-1)*.07;
- });
-
- mixers.forEach(m=>m.update(dt));
-
- waterMat.color.setHSL(
-  .52,.7,.29+Math.sin(t*.4)*.015
- );
-
- renderer.render(scene,camera);
+ document.getElementById("healthFill").style.width=
+  (player.hp/player.maxHp*100)+"%";
+ document.getElementById("heroName").textContent=
+  heroes[player.type].emoji+" "+heroes[player.type].name;
+ document.getElementById("stats").textContent=
+  "LV "+level+" | GOLD "+gold+" | KILL "+kills;
+ document.getElementById("score").textContent=
+  "BLUE "+kills+" - "+enemies.filter(e=>e.hp<=0).length+" RED";
+ document.getElementById("timer").textContent=
+  String(Math.floor(elapsed/60)).padStart(2,"0")+":"+
+  String(Math.floor(elapsed%60)).padStart(2,"0");
 }
 
-/* ==================================================
-   19. SAIZ SKRIN
-================================================== */
-
-function resize(){
-
- if(!camera||!renderer)return;
-
- camera.aspect=innerWidth/innerHeight;
- camera.updateProjectionMatrix();
-
- renderer.setSize(innerWidth,innerHeight);
- renderer.setPixelRatio(
-  Math.min(window.devicePixelRatio||1,1.25)
- );
+function endGame(msg){
+ ended=true;
+ document.getElementById("message").innerHTML=
+  msg+"<br><button onclick='location.reload()' style='padding:12px;margin-top:15px'>MAIN SEMULA</button>";
 }
 
-/* ==================================================
-   20. BUTANG PERMAINAN
-================================================== */
+function circle(x,y,r,color){
+ ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+}
+function bar(x,y,w,h,hp,max,color){
+ ctx.fillStyle="#251e20";ctx.fillRect(x-w/2,y,w,h);
+ ctx.fillStyle=color;ctx.fillRect(x-w/2,y,w*clamp(hp/max,0,1),h);
+}
 
-$("cast").addEventListener("click",cast);
-$("reel").addEventListener("click",reel);
-$("lift").addEventListener("click",lift);
-$("continue").addEventListener("click",closeResult);
-$("zikirDone").addEventListener("click",completeZikir);
+function draw(){
+ ctx.setTransform(scale,0,0,scale,
+  (canvas.width-W*scale)/2,(canvas.height-H*scale)/2);
+ ctx.clearRect(0,0,W,H);
 
-$("sound").addEventListener("click",()=>{
-
- soundOn=!soundOn;
-
- $("sound").textContent=
-  soundOn?"🔊 SUARA":"🔇 SENYAP";
-
- $("soundStatus").textContent=
-  soundOn?"Suara: aktif":"Suara: senyap";
-
- if(!soundOn&&window.speechSynthesis){
-  speechSynthesis.cancel();
+ // MAP
+ ctx.fillStyle="#477b49";ctx.fillRect(0,0,W,H);
+ // Jungle zones
+ ctx.fillStyle="#355f3d";
+ for(let x=0;x<W;x+=80){
+  ctx.fillRect(x,55,40,30);
+  ctx.fillRect(x,515,40,30);
  }
+ // Lane paths
+ lanes.forEach(y=>{
+  ctx.fillStyle="#b49a70";ctx.fillRect(0,y-25,W,50);
+  ctx.fillStyle="#c9b28b";ctx.fillRect(0,y-2,W,4);
+ });
+ // Mid jungle dividers
+ ctx.fillStyle="#315c39";
+ ctx.fillRect(0,225,W,30);ctx.fillRect(0,375,W,30);
+
+ // Base
+ circle(55,300,43,"#287ac9");
+ circle(55,300,25,"#66c8ff");
+ circle(945,300,43,"#bd3434");
+ circle(945,300,25,"#ff9d62");
+ ctx.fillStyle="white";ctx.font="bold 12px Arial";
+ ctx.textAlign="center";
+ ctx.fillText("BLUE BASE",55,360);ctx.fillText("RED BASE",945,360);
+
+ // Towers
+ towers.forEach(t=>{
+  if(t.hp<=0)return;
+  circle(t.x,t.y,19,t.team===0?"#318bd8":"#d94b4b");
+  circle(t.x,t.y,10,"#e7d8a0");
+  bar(t.x,t.y-29,42,5,t.hp,t.max,"#65ed91");
+ });
+
+ // Minions
+ minions.forEach(m=>{
+  circle(m.x,m.y,8,m.team===0?"#72caff":"#ff8c83");
+  bar(m.x,m.y-14,20,3,m.hp,m.maxHp,"#73ed88");
+ });
+
+ // Projectiles
+ projectiles.forEach(p=>{
+  circle(p.x,p.y,5,p.team===0?"#9ceaff":"#ffb36a");
+ });
+
+ // Enemy heroes
+ enemies.forEach(e=>{
+  if(e.hp<=0)return;
+  circle(e.x,e.y,17,"#ff4444");
+  circle(e.x,e.y,11,"#ffb6a0");
+  ctx.fillStyle="#fff";ctx.font="18px Arial";
+  ctx.fillText(heroes[e.type].emoji,e.x,e.y+6);
+  bar(e.x,e.y-28,42,5,e.hp,e.maxHp,"#ff5757");
+ });
+
+ // Player
+ if(player&&player.alive){
+  circle(player.x,player.y,23,"#268fe0");
+  circle(player.x,player.y,17,heroes[player.type].color);
+  ctx.font="22px Arial";ctx.textAlign="center";
+  ctx.fillText(heroes[player.type].emoji,player.x,player.y+8);
+  bar(player.x,player.y-32,48,6,player.hp,player.maxHp,"#42f28b");
+ }
+ ctx.setTransform(1,0,0,1,0,0);
+}
+
+function loop(now){
+ let dt=Math.min((now-lastTime)/1000,.04);
+ lastTime=now;
+ update(dt);draw();
+ requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// KEYBOARD
+addEventListener("keydown",e=>{
+ keys[e.key]=true;
+ if(e.key==="j"||e.key===" ")attack();
+ if(e.key==="k")skillB();
+ if(e.key==="l")dash();
+ if(e.key==="u")ultimate();
 });
+addEventListener("keyup",e=>keys[e.key]=false);
 
-$("startBtn").addEventListener("click",()=>{
-
- $("start").style.display="none";
-
- say(
-  "Bismillahirrahmanirrahim. "+
-  "Bismillahirrahmanirrahim. "+
-  "Bismillahirrahmanirrahim."
- );
-
- setTimeout(()=>{
-
-  msg("Tahniah! Anda layak menyertai permainan ini.");
-  say("Tahniah! Anda layak menyertai permainan ini.");
-
- },4000);
-});
-
-/* ==================================================
-   21. MULAKAN GAME
-================================================== */
-
-init();
-
-}catch(error){
-
- showFatalError(error);
-
+// JOYSTICK
+const joyEl=document.getElementById("joy");
+const knob=document.getElementById("knob");
+function joyMove(e){
+ let r=joyEl.getBoundingClientRect();
+ let cx=r.left+r.width/2,cy=r.top+r.height/2;
+ let dx=e.clientX-cx,dy=e.clientY-cy;
+ let len=Math.hypot(dx,dy),max=37;
+ if(len>max){dx=dx/len*max;dy=dy/len*max;}
+ joy.x=dx/max;joy.y=dy/max;
+ knob.style.left=(33+dx)+"px";
+ knob.style.top=(33+dy)+"px";
 }
+joyEl.addEventListener("pointerdown",e=>{
+ joy.active=true;joyEl.setPointerCapture(e.pointerId);joyMove(e);
+});
+joyEl.addEventListener("pointermove",e=>{if(joy.active)joyMove(e);});
+function stopJoy(){
+ joy.active=false;joy.x=0;joy.y=0;
+ knob.style.left="33px";knob.style.top="33px";
+}
+joyEl.addEventListener("pointerup",stopJoy);
+joyEl.addEventListener("pointercancel",stopJoy);
 
-})();
+// SKILLS
+function attack(){
+ if(!started||!player.alive||cooldown.a>0)return;
+ let t=nearest(player,0,180);
+ if(t){fire(player.x,player.y,t,0,player.damage*1.5,8);cooldown.a=.35;}
+}
+function skillB(){
+ if(!started||!player.alive||cooldown.b>0)return;
+ let targets=[...enemies,...minions].filter(e=>e.hp>0&&e.team===1&&distance(player,e)<190);
+ targets.forEach(t=>damage(t,player.damage*2,0));
+ cooldown.b=5;
+}
+function dash(){
+ if(!started||!player.alive||cooldown.c>0)return;
+ let dx=joy.x,dy=joy.y;
+ if(!dx&&!dy)dx=1;
+ player.x=clamp(player.x+dx*105,20,980);
+ player.y=clamp(player.y+dy*105,80,520);
+ cooldown.c=4;
+}
+function ultimate(){
+ if(!started||!player.alive||cooldown.u>0)return;
+ [...enemies,...minions].filter(e=>e.hp>0&&e.team===1&&distance(player,e)<230)
+ .forEach(t=>damage(t,player.damage*4,0));
+ cooldown.u=15;
+}
+document.getElementById("attack").onclick=attack;
+document.getElementById("skill1").onclick=skillB;
+document.getElementById("skill2").onclick=dash;
+document.getElementById("skill3").onclick=ultimate;
 </script>
-
 </body>
 </html>
